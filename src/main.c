@@ -258,6 +258,139 @@ void vDraw_fredAlien(signed short pos_x, signed short pos_y,
 
 }
 
+void vDraw_crabAlien(signed short pos_x, signed short pos_y,
+                        signed short state) 
+{
+    unsigned int primary_color = White;    
+    unsigned int secondary_color = Black;
+
+    tumDrawFilledBox(pos_x, pos_y, 
+                    7*px, 4*px, primary_color);   // box 0
+
+    tumDrawFilledBox(pos_x + px, pos_y + px,        // eyes
+                        px, px, secondary_color);
+    tumDrawFilledBox(pos_x + 5*px, pos_y + px,
+                        px, px, secondary_color);
+
+    tumDrawFilledBox(pos_x + px, pos_y - px,    // left ear
+                    px, px, primary_color);
+    tumDrawFilledBox(pos_x, pos_y - 2*px, 
+                    px, px, primary_color);
+
+    tumDrawFilledBox(pos_x + 5*px, pos_y - px,  // right ear
+                    px, px, primary_color);
+    tumDrawFilledBox(pos_x + 6*px, pos_y - 2*px, 
+                    px, px, primary_color);
+
+    tumDrawFilledBox(pos_x, pos_y + 4*px,       // left leg
+                    px, px, primary_color);
+    tumDrawFilledBox(pos_x + 6*px, pos_y + 4*px, // right leg
+                    px, px, primary_color);
+
+    if (state == 0) {
+
+        tumDrawFilledBox(pos_x + px, pos_y + 5*px,  // left foot
+                        2*px, px, primary_color);
+        tumDrawFilledBox(pos_x + 4*px, pos_y + 5*px,    // right foot
+                        2*px, px, primary_color);
+
+        tumDrawFilledBox(pos_x - px, pos_y + px,        // left arm
+                        px, 2*px, primary_color);
+        tumDrawFilledBox(pos_x - 2*px, pos_y + 2*px,
+                        px, 3*px, primary_color);
+
+        tumDrawFilledBox(pos_x + 7*px, pos_y + px,      // right arm
+                        px, 2*px, primary_color);
+        tumDrawFilledBox(pos_x + 8*px, pos_y + 2*px,
+                        px, 3*px, primary_color);
+
+        
+    }
+    if (state == 1) {
+
+        tumDrawFilledBox(pos_x - 1*px, pos_y + 5*px,    // left foot
+                        px, px, primary_color);
+        tumDrawFilledBox(pos_x + 7*px, pos_y + 5*px,    // right foot
+                        px, px, primary_color);
+
+        tumDrawFilledBox(pos_x - px, pos_y + px,
+                        px, 3*px, primary_color);
+        tumDrawFilledBox(pos_x - 2*px, pos_y - px,
+                        px, 4*px, primary_color);
+
+        tumDrawFilledBox(pos_x + 7*px, pos_y + px,
+                        px, 3*px, primary_color);
+        tumDrawFilledBox(pos_x + 8*px, pos_y - px,
+                        px, 4*px, primary_color);
+
+    }
+
+
+}
+
+void vDraw_jellyAlien(signed short pos_x, signed short pos_y,
+                        signed short state)
+{
+    unsigned int primary_color = White;    
+    unsigned int secondary_color = Black;
+
+    tumDrawFilledBox(pos_x, pos_y, 8*px, 2*px, primary_color);
+    tumDrawFilledBox(pos_x + 2*px, pos_y, px, px, secondary_color);
+    tumDrawFilledBox(pos_x + 5*px, pos_y, px, px, secondary_color);
+
+    tumDrawFilledBox(pos_x + px, pos_y - px, 
+                    6*px, px, primary_color);
+    tumDrawFilledBox(pos_x + 2*px, pos_y - 2*px, 
+                    4*px, px, primary_color);
+    tumDrawFilledBox(pos_x + 3*px, pos_y - 3*px, 
+                    2*px, px, primary_color);
+
+    if (state == 0) {
+        tumDrawFilledBox(pos_x + 2*px, pos_y + 2*px,    // layer -1
+                        px, px, primary_color);
+        tumDrawFilledBox(pos_x + 5*px, pos_y + 2*px, 
+                        px, px, primary_color);
+
+        tumDrawFilledBox(pos_x + px, pos_y + 3*px,      // layer -2
+                        px, px, primary_color);
+        tumDrawFilledBox(pos_x + 3*px, pos_y + 3*px, 
+                        2*px, px, primary_color);
+        tumDrawFilledBox(pos_x + 6*px, pos_y + 3*px,
+                        px, px, primary_color);
+
+        tumDrawFilledBox(pos_x, pos_y + 4*px,           // layer -3
+                        px, px, primary_color);
+        tumDrawFilledBox(pos_x + 2*px, pos_y + 4*px,
+                        px, px, primary_color);
+        tumDrawFilledBox(pos_x + 5*px, pos_y + 4*px,
+                        px, px, primary_color);
+        tumDrawFilledBox(pos_x + 7*px, pos_y + 4*px,
+                        px, px, primary_color);
+        
+        
+    }
+    if (state == 1) {
+        tumDrawFilledBox(pos_x + px, pos_y + 2*px,      // layer -1
+                        px, px, primary_color);
+        tumDrawFilledBox(pos_x + 3*px, pos_y + 2*px,
+                        2*px, px, primary_color);
+        tumDrawFilledBox(pos_x + 6*px, pos_y + 2*px,
+                        px, px, primary_color);
+
+        tumDrawFilledBox(pos_x, pos_y + 3*px,    // layer -2
+                        px, px, primary_color);
+        tumDrawFilledBox(pos_x + 7*px, pos_y + 3*px,
+                        px, px, primary_color);
+
+        tumDrawFilledBox(pos_x + px, pos_y + 4*px,
+                        px, px, primary_color);
+        tumDrawFilledBox(pos_x + 6*px, pos_y + 4*px,
+                        px, px, primary_color);
+    }
+}
+
+                        
+
 void vDrawFigures(void *pvParameters)
 {
     signed short x_mothership = CENTER_X - 6*px;
@@ -277,7 +410,14 @@ void vDrawFigures(void *pvParameters)
 
     signed short x_fredAlien = CENTER_X - 6*px;
     signed short y_fredAlien = CENTER_Y + 50;
-    signed short state_fredAlien = 1;
+
+    signed short x_crabAlien = CENTER_X - 4*px;
+    signed short y_crabAlien = CENTER_Y;
+
+    signed short x_jellyAlien = CENTER_X - 5*px;
+    signed short y_jellyAlien = CENTER_Y - 50;
+
+    signed short state = 1;
 
     int ticks = 0;
 
@@ -299,18 +439,24 @@ void vDrawFigures(void *pvParameters)
                 vDrawBunker(x_bunker3, y_bunker3);
 
                 vDraw_fredAlien(x_fredAlien, y_fredAlien, 
-                                state_fredAlien);
+                                state);
+
+                vDraw_crabAlien(x_crabAlien, y_crabAlien, 
+                                state);
+
+                vDraw_jellyAlien(x_jellyAlien, y_jellyAlien,
+                                state);
 
                 vDrawFPS();
 
                 xSemaphoreGive(ScreenLock);
                 if (ticks == 50)    {
                     
-                    if (state_fredAlien == 1)   {
-                        state_fredAlien = 0;
+                    if (state == 1)   {
+                        state = 0;
                     }   
                     else {
-                        state_fredAlien = 1;
+                        state = 1;
                     }
                     ticks = 0;
                 }
