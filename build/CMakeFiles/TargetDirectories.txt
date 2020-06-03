@@ -1,0 +1,4 @@
+/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles/edit_cache.dir
+/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles/rebuild_cache.dir
+/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles/FreeRTOS_Emulator.dir
+/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles/commit.dir
