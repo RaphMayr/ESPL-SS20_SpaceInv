@@ -145,12 +145,12 @@ void vSwapBuffers(void *pvParameters)
 
 // DRAWTASK ##########################################################################
 
-#define px 2
+#define px 3
 
 void vDrawPlayScreen(void) {
-    signed short x_playscreen = 130;
+    signed short x_playscreen = 100;
     signed short y_playscreen = 0;
-    signed short w_playscreen = 380;
+    signed short w_playscreen = 440;
     signed short h_playscreen = 480;
 
     tumDrawClear(White);
@@ -173,7 +173,7 @@ void vDrawMotherShip(signed short pos_x, signed short pos_y) {
 
 void vDrawBunker(signed short pos_x, signed short pos_y) {
     
-    unsigned int color = TUMBlue;
+    unsigned int color = Green;
 
     tumDrawFilledBox(pos_x + 4*px, pos_y - 4 *px, 
                         16*px, px, color);                      // box 4
@@ -201,6 +201,63 @@ void vDrawBunker(signed short pos_x, signed short pos_y) {
     tumDrawFilledBox(pos_x + 19*px, pos_y + 11*px, 5*px, 2*px, color);
 }
 
+void vDraw_fredAlien(signed short pos_x, signed short pos_y, 
+                        signed short state)
+{
+    unsigned int primary_color = White;    
+    unsigned int secondary_color = Black;
+
+    tumDrawFilledBox(pos_x + 4*px, pos_y - 2*px, 
+                        4*px, px, primary_color);           // box 2
+
+    tumDrawFilledBox(pos_x + px, pos_y - px, 
+                        10*px, px, primary_color);          // box 1
+
+    tumDrawFilledBox(pos_x, pos_y, 12*px, 3*px, primary_color); // box 0
+
+    tumDrawFilledBox(pos_x + 3*px, pos_y + px,                            
+                        2*px, px, secondary_color);             // box -1l
+    tumDrawFilledBox(pos_x + 7*px, pos_y + px, 
+                        2*px, px, secondary_color);             // box -1r
+
+    tumDrawFilledBox(pos_x + px, pos_y + 3*px,
+                        10*px, 3*px, primary_color);       // box -2
+    tumDrawFilledBox(pos_x + 5*px, pos_y + 3*px, 
+                        2*px, px, secondary_color);        // box -2m
+
+    tumDrawFilledBox(pos_x + px, pos_y + 3*px,            // side box left top
+                        px, px, secondary_color);
+    
+    tumDrawFilledBox(pos_x + 10*px, pos_y + 3*px,         // side box right top
+                        px, px, secondary_color);
+
+    tumDrawFilledBox(pos_x + 3*px, pos_y + 4*px,          // middle sec. boxes
+                        2*px, px, secondary_color);
+    tumDrawFilledBox(pos_x + 7*px, pos_y + 4*px,
+                        2*px, px, secondary_color);
+
+    if (state == 0) {
+        tumDrawFilledBox(pos_x + px, pos_y + 5*px,      // side box left bottom
+                            px, px, secondary_color);
+
+        tumDrawFilledBox(pos_x + 10*px, pos_y + 5*px,   // side box right
+                            px, px, secondary_color);
+
+        tumDrawFilledBox(pos_x + 4*px, pos_y + 5*px,      // middle sec. box bottom
+                            4*px, px, secondary_color);                    
+    }
+    if (state == 1) {
+        tumDrawFilledBox(pos_x, pos_y + 5*px,
+                            2*px, px, primary_color);
+        tumDrawFilledBox(pos_x + 10*px, pos_y + 5*px,
+                            2*px, px, primary_color);
+        
+        tumDrawFilledBox(pos_x + 2*px, pos_y + 5*px,
+                            8*px, px, secondary_color);
+    }
+
+}
+
 void vDrawFigures(void *pvParameters)
 {
     signed short x_mothership = CENTER_X - 6*px;
@@ -218,8 +275,14 @@ void vDrawFigures(void *pvParameters)
     signed short x_bunker3 = CENTER_X + 150 - 12*px;
     signed short y_bunker3 = CENTER_Y + 100;
 
+    signed short x_fredAlien = CENTER_X - 6*px;
+    signed short y_fredAlien = CENTER_Y + 50;
+    signed short state_fredAlien = 1;
+
+    int ticks = 0;
+
     while (1) {
-        if (DrawSignal)
+        if (DrawSignal) {
             if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
                 pdTRUE) {
                 xGetButtonInput(); // Update global input
@@ -227,17 +290,34 @@ void vDrawFigures(void *pvParameters)
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
                 vDrawPlayScreen();
+
                 vDrawMotherShip(x_mothership, y_mothership);
+
                 vDrawBunker(x_bunker0, y_bunker0);
                 vDrawBunker(x_bunker1, y_bunker1);
                 vDrawBunker(x_bunker2, y_bunker2);
                 vDrawBunker(x_bunker3, y_bunker3);
 
+                vDraw_fredAlien(x_fredAlien, y_fredAlien, 
+                                state_fredAlien);
+
                 vDrawFPS();
 
                 xSemaphoreGive(ScreenLock);
-            }
-            
+                if (ticks == 50)    {
+                    
+                    if (state_fredAlien == 1)   {
+                        state_fredAlien = 0;
+                    }   
+                    else {
+                        state_fredAlien = 1;
+                    }
+                    ticks = 0;
+                }
+                ticks++;
+            } 
+        } 
+        
     }
 }
 
