@@ -32,10 +32,13 @@
 #define CENTER_Y SCREEN_HEIGHT/2
 
 static TaskHandle_t drawtask = NULL;
+static TaskHandle_t startscreen_task = NULL;
 static TaskHandle_t bufferswap = NULL;
+static TaskHandle_t statemachine = NULL;
 
 static SemaphoreHandle_t DrawSignal = NULL;
 static SemaphoreHandle_t ScreenLock = NULL;
+static SemaphoreHandle_t state_machine_signal = NULL;
 
 
 typedef struct buttons_buffer {
@@ -52,7 +55,14 @@ void xGetButtonInput(void)
         xQueueReceive(buttonInputQueue, &buttons.buttons, 0);
         xSemaphoreGive(buttons.lock);
     }
-}               
+}  
+
+void vCheckButtonInput(void)
+{
+    if (buttons.buttons[KEYCODE(SPACE)]) {
+        xSemaphoreGive(state_machine_signal); 
+    }
+}
 
 void checkDraw(unsigned char status, const char *msg)
 {
@@ -145,7 +155,9 @@ void vSwapBuffers(void *pvParameters)
 }
 
 
-// DRAWTASK #########################################################################
+// TASKS #########################################################################
+
+    
                         
 void vDrawFigures(void *pvParameters)
 {
@@ -182,6 +194,7 @@ void vDrawFigures(void *pvParameters)
             if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
                 pdTRUE) {
                 xGetButtonInput(); // Update global input
+                vCheckButtonInput();
                 
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
@@ -223,13 +236,75 @@ void vDrawFigures(void *pvParameters)
     }
 }
 
-void vMoveFigures(void) {
+void vStart_screen(void *pvParameters) {
 
-    
+    unsigned short state = 0;
+    int ticks = 0;
+
     while(1) {
+        if (DrawSignal) {
+            if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
+                pdTRUE) {
+                xGetButtonInput(); // Update global input
+                vCheckButtonInput();
 
+                xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
+                vDrawStartScreen(state);
+                
+                vDrawFPS();
 
+                xSemaphoreGive(ScreenLock);
+                if (ticks == 50)    {
+                    if (state == 1)   {
+                        state = 0;
+                    }   
+                    else {
+                        state = 1;
+                    }
+                    ticks = 0;
+                }
+                ticks++;
+
+            } 
+        } 
+    }
+}
+
+void vStateMachine(void *pvParameters) {
+
+    vTaskSuspend(drawtask);
+
+    unsigned short state = 0;
+
+    const int state_change_period = 1000;
+    TickType_t last_change = xTaskGetTickCount();
+
+    while(1) {
+        if (xSemaphoreTake(state_machine_signal, 
+                            portMAX_DELAY)) {
+            if ((xTaskGetTickCount() - last_change) >
+                    state_change_period) {
+                
+                if (state == 0) {
+                    state = 1;
+                }
+                else if (state == 1) {
+                    state = 0;
+                }
+
+                if (state == 0) {
+                    vTaskSuspend(drawtask);
+                    vTaskResume(startscreen_task);
+                }
+                if (state == 1) {
+                    vTaskSuspend(startscreen_task);
+                    vTaskResume(drawtask);
+                    
+                }
+                last_change = xTaskGetTickCount();
+            }
+        }
     }
 }
 
@@ -278,6 +353,8 @@ int main(int argc, char *argv[])
         goto err_draw_signal;
     }
 
+    state_machine_signal = xSemaphoreCreateBinary();
+
 
     // Task Creation ##############################
     // Screen 0 Tasks
@@ -285,10 +362,19 @@ int main(int argc, char *argv[])
     xTaskCreate(vSwapBuffers, "", mainGENERIC_STACK_SIZE * 2,
                 NULL, configMAX_PRIORITIES, &bufferswap);
 
+    xTaskCreate(vStateMachine, "", mainGENERIC_STACK_SIZE * 2,
+                NULL, configMAX_PRIORITIES - 1, &statemachine);
+
+
     if (xTaskCreate(vDrawFigures, "", mainGENERIC_STACK_SIZE * 2,
                 NULL, mainGENERIC_PRIORITY, &drawtask) != pdPASS) {
         
         PRINT_TASK_ERROR("drawTask");
+    }
+    if (xTaskCreate(vStart_screen, "", mainGENERIC_STACK_SIZE * 2,
+                NULL, mainGENERIC_PRIORITY, &startscreen_task) != pdPASS) {
+        
+        PRINT_TASK_ERROR("startscreen_task");
     }
 
     // End of Task Creation #########################

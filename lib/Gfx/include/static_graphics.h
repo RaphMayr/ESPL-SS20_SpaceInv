@@ -15,6 +15,12 @@
  */
 #define px 2
 /**
+ * @brief draws the starting screen
+ * 
+ * @param state == 0 lower screen gets drawn 
+ */
+void vDrawStartScreen(unsigned short state);
+/**
  * @brief draws the background to play on 
  */ 
 void vDrawPlayScreen(void);
