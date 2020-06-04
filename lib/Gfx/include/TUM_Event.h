@@ -71,30 +71,6 @@ signed short tumEventGetMouseX(void);
  * @return signed short Y axis pixel location of the mouse
  */
 signed short tumEventGetMouseY(void);
-<<<<<<< HEAD
-
-/**
- * @brief Returns a copy of the mouse's left button status
- *
- * @return Either 1 for pressed or 0 for not pressed.
- */
-signed char tumEventGetMouseLeft(void);
-
-/**
- * @brief Returns a copy of the mouse's right button status
- *
- * @return Either 1 for pressed or 0 for not pressed.
- */
-signed char tumEventGetMouseRight(void);
-
-/**
- * @brief Returns a copy of the mouse's middle button status
- *
- * @return Either 1 for pressed or 0 for not pressed.
- */
-signed char tumEventGetMouseMiddle(void);
-=======
->>>>>>> 9a5b53c3a1afe737daa40c6706ddd40f6920fd77
 
 /**
  * @brief Returns a copy of the mouse's left button status

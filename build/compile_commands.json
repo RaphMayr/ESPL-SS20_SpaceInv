@@ -56,6 +56,11 @@
 },
 {
   "directory": "/home/rtos-sim/ESPL-SS20_SpaceInv/build",
+  "command": "/usr/bin/cc   -I/usr/include/SDL2 -I/home/rtos-sim/ESPL-SS20_SpaceInv/lib/FreeRTOS_Kernel/include -I/home/rtos-sim/ESPL-SS20_SpaceInv/lib/FreeRTOS_Kernel/portable/GCC/Posix -I/home/rtos-sim/ESPL-SS20_SpaceInv/include -I/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/include -I/home/rtos-sim/ESPL-SS20_SpaceInv/lib/AsyncIO/include -I/home/rtos-sim/ESPL-SS20_SpaceInv/lib/tracer/include  -g   -Wall -O0 -o CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o   -c /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/static_graphics.c",
+  "file": "/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/static_graphics.c"
+},
+{
+  "directory": "/home/rtos-sim/ESPL-SS20_SpaceInv/build",
   "command": "/usr/bin/cc   -I/usr/include/SDL2 -I/home/rtos-sim/ESPL-SS20_SpaceInv/lib/FreeRTOS_Kernel/include -I/home/rtos-sim/ESPL-SS20_SpaceInv/lib/FreeRTOS_Kernel/portable/GCC/Posix -I/home/rtos-sim/ESPL-SS20_SpaceInv/include -I/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/include -I/home/rtos-sim/ESPL-SS20_SpaceInv/lib/AsyncIO/include -I/home/rtos-sim/ESPL-SS20_SpaceInv/lib/tracer/include  -g   -Wall -O0 -o CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o   -c /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Utils.c",
   "file": "/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Utils.c"
 },

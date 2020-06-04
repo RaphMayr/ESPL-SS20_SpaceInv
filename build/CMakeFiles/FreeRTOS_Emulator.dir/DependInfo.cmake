@@ -18,6 +18,7 @@ set(CMAKE_DEPENDS_CHECK_C
   "/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Font.c" "/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Font.c.o"
   "/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Sound.c" "/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o"
   "/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Utils.c" "/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o"
+  "/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/static_graphics.c" "/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o"
   "/home/rtos-sim/ESPL-SS20_SpaceInv/src/main.c" "/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")

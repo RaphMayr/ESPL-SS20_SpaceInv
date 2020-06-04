@@ -10,6 +10,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Draw.c.o"
   "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Font.c.o"
   "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Ball.c.o"
+  "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o"
   "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o"
   "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o"
   "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.o"
