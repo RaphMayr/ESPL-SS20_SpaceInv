@@ -123,7 +123,7 @@ CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o
  /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Sound.c
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o
  /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Utils.c
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o
  ../include/FreeRTOSConfig.h
  ../lib/FreeRTOS_Kernel/include/FreeRTOS.h
  ../lib/FreeRTOS_Kernel/include/deprecated_definitions.h
@@ -142,8 +142,29 @@ CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o
  ../lib/Gfx/include/TUM_Font.h
  ../lib/Gfx/include/TUM_Sound.h
  ../lib/Gfx/include/TUM_Utils.h
- ../lib/Gfx/include/static_graphics.h
- /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/static_graphics.c
+ ../lib/Gfx/include/menu_graphics.h
+ /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/menu_graphics.c
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o
+ ../include/FreeRTOSConfig.h
+ ../lib/FreeRTOS_Kernel/include/FreeRTOS.h
+ ../lib/FreeRTOS_Kernel/include/deprecated_definitions.h
+ ../lib/FreeRTOS_Kernel/include/list.h
+ ../lib/FreeRTOS_Kernel/include/mpu_wrappers.h
+ ../lib/FreeRTOS_Kernel/include/portable.h
+ ../lib/FreeRTOS_Kernel/include/projdefs.h
+ ../lib/FreeRTOS_Kernel/include/queue.h
+ ../lib/FreeRTOS_Kernel/include/semphr.h
+ ../lib/FreeRTOS_Kernel/include/task.h
+ ../lib/FreeRTOS_Kernel/include/timers.h
+ ../lib/FreeRTOS_Kernel/portable/GCC/Posix/portmacro.h
+ ../lib/Gfx/include/TUM_Ball.h
+ ../lib/Gfx/include/TUM_Draw.h
+ ../lib/Gfx/include/TUM_Event.h
+ ../lib/Gfx/include/TUM_Font.h
+ ../lib/Gfx/include/TUM_Sound.h
+ ../lib/Gfx/include/TUM_Utils.h
+ ../lib/Gfx/include/play_graphics.h
+ /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/play_graphics.c
 CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o
  ../include/FreeRTOSConfig.h
  ../lib/AsyncIO/include/AsyncIO.h
@@ -164,5 +185,6 @@ CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o
  ../lib/Gfx/include/TUM_Font.h
  ../lib/Gfx/include/TUM_Sound.h
  ../lib/Gfx/include/TUM_Utils.h
- ../lib/Gfx/include/static_graphics.h
+ ../lib/Gfx/include/menu_graphics.h
+ ../lib/Gfx/include/play_graphics.h
  /home/rtos-sim/ESPL-SS20_SpaceInv/src/main.c

@@ -123,26 +123,47 @@ CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o: ../lib/Gfx/TUM_Sound.c
 
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o: ../lib/Gfx/TUM_Utils.c
 
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../include/FreeRTOSConfig.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/FreeRTOS_Kernel/include/FreeRTOS.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/FreeRTOS_Kernel/include/deprecated_definitions.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/FreeRTOS_Kernel/include/list.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/FreeRTOS_Kernel/include/mpu_wrappers.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/FreeRTOS_Kernel/include/portable.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/FreeRTOS_Kernel/include/projdefs.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/FreeRTOS_Kernel/include/queue.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/FreeRTOS_Kernel/include/semphr.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/FreeRTOS_Kernel/include/task.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/FreeRTOS_Kernel/include/timers.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/FreeRTOS_Kernel/portable/GCC/Posix/portmacro.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/Gfx/include/TUM_Ball.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/Gfx/include/TUM_Draw.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/Gfx/include/TUM_Event.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/Gfx/include/TUM_Font.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/Gfx/include/TUM_Sound.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/Gfx/include/TUM_Utils.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/Gfx/include/static_graphics.h
-CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o: ../lib/Gfx/static_graphics.c
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../include/FreeRTOSConfig.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/FreeRTOS_Kernel/include/FreeRTOS.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/FreeRTOS_Kernel/include/deprecated_definitions.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/FreeRTOS_Kernel/include/list.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/FreeRTOS_Kernel/include/mpu_wrappers.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/FreeRTOS_Kernel/include/portable.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/FreeRTOS_Kernel/include/projdefs.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/FreeRTOS_Kernel/include/queue.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/FreeRTOS_Kernel/include/semphr.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/FreeRTOS_Kernel/include/task.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/FreeRTOS_Kernel/include/timers.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/FreeRTOS_Kernel/portable/GCC/Posix/portmacro.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/Gfx/include/TUM_Ball.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/Gfx/include/TUM_Draw.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/Gfx/include/TUM_Event.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/Gfx/include/TUM_Font.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/Gfx/include/TUM_Sound.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/Gfx/include/TUM_Utils.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/Gfx/include/menu_graphics.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/Gfx/menu_graphics.c
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../include/FreeRTOSConfig.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/FreeRTOS_Kernel/include/FreeRTOS.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/FreeRTOS_Kernel/include/deprecated_definitions.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/FreeRTOS_Kernel/include/list.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/FreeRTOS_Kernel/include/mpu_wrappers.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/FreeRTOS_Kernel/include/portable.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/FreeRTOS_Kernel/include/projdefs.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/FreeRTOS_Kernel/include/queue.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/FreeRTOS_Kernel/include/semphr.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/FreeRTOS_Kernel/include/task.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/FreeRTOS_Kernel/include/timers.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/FreeRTOS_Kernel/portable/GCC/Posix/portmacro.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/Gfx/include/TUM_Ball.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/Gfx/include/TUM_Draw.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/Gfx/include/TUM_Event.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/Gfx/include/TUM_Font.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/Gfx/include/TUM_Sound.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/Gfx/include/TUM_Utils.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/Gfx/include/play_graphics.h
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/Gfx/play_graphics.c
 
 CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o: ../include/FreeRTOSConfig.h
 CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o: ../lib/AsyncIO/include/AsyncIO.h
@@ -163,6 +184,7 @@ CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o: ../lib/Gfx/include/TUM_Event.h
 CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o: ../lib/Gfx/include/TUM_Font.h
 CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o: ../lib/Gfx/include/TUM_Sound.h
 CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o: ../lib/Gfx/include/TUM_Utils.h
-CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o: ../lib/Gfx/include/static_graphics.h
+CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o: ../lib/Gfx/include/menu_graphics.h
+CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o: ../lib/Gfx/include/play_graphics.h
 CMakeFiles/FreeRTOS_Emulator.dir/src/main.c.o: ../src/main.c
 

@@ -21,7 +21,8 @@
 
 #include "AsyncIO.h"
 
-#include "static_graphics.h"
+#include "play_graphics.h"
+#include "menu_graphics.h"
 
 #define mainGENERIC_PRIORITY (tskIDLE_PRIORITY)
 #define mainGENERIC_STACK_SIZE ((unsigned short)2560)
@@ -61,6 +62,9 @@ void vCheckButtonInput(void)
 {
     if (buttons.buttons[KEYCODE(SPACE)]) {
         xSemaphoreGive(state_machine_signal); 
+    }
+    if (buttons.buttons[KEYCODE(ESCAPE)]) {
+        printf("Pausing...\n");
     }
 }
 
@@ -176,14 +180,8 @@ void vDrawFigures(void *pvParameters)
     signed short x_bunker3 = CENTER_X + 150 - 12*px;
     signed short y_bunker3 = CENTER_Y + 100;
 
-    signed short x_fredAlien = CENTER_X - 6*px;
-    signed short y_fredAlien = CENTER_Y + 50;
-
-    signed short x_crabAlien = CENTER_X - 4*px;
-    signed short y_crabAlien = CENTER_Y;
-
-    signed short x_jellyAlien = CENTER_X - 5*px;
-    signed short y_jellyAlien = CENTER_Y - 50;
+    signed short x_aliens = CENTER_X - 130;
+    signed short y_aliens = CENTER_Y - 120;
 
     signed short state = 1;
 
@@ -200,21 +198,14 @@ void vDrawFigures(void *pvParameters)
 
                 vDrawPlayScreen();
 
-                vDrawMotherShip(x_mothership, y_mothership);
+                vDrawPlayer(x_mothership, y_mothership);
 
                 vDrawBunker(x_bunker0, y_bunker0);
                 vDrawBunker(x_bunker1, y_bunker1);
                 vDrawBunker(x_bunker2, y_bunker2);
                 vDrawBunker(x_bunker3, y_bunker3);
 
-                vDraw_fredAlien(x_fredAlien, y_fredAlien, 
-                                state);
-
-                vDraw_crabAlien(x_crabAlien, y_crabAlien, 
-                                state);
-
-                vDraw_jellyAlien(x_jellyAlien, y_jellyAlien,
-                                state);
+                vDrawAliens(x_aliens, y_aliens, state);
 
                 vDrawFPS();
 
@@ -241,6 +232,17 @@ void vStart_screen(void *pvParameters) {
     unsigned short state = 0;
     int ticks = 0;
 
+    signed short mouse_X = 0;
+    signed short mouse_Y = 0;
+
+    int buttonState_Mouse = 0;
+    int lastState_Mouse = 0;
+    clock_t lastDebounceTime_Mouse;
+
+    clock_t timestamp;
+    double debounce_delay = 0.025;
+
+
     while(1) {
         if (DrawSignal) {
             if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
@@ -248,13 +250,38 @@ void vStart_screen(void *pvParameters) {
                 xGetButtonInput(); // Update global input
                 vCheckButtonInput();
 
+                // check button inputs
+                // get mouse coordinates 
+                mouse_X = tumEventGetMouseX();
+                mouse_Y = tumEventGetMouseY();
+
+                int reading_Mouse = tumEventGetMouseLeft();
+
+                if (reading_Mouse != lastState_Mouse) {
+                    lastDebounceTime_Mouse = clock();
+                }
+                timestamp = clock();
+                if((((double) (timestamp - lastDebounceTime_Mouse)
+                        )/ CLOCKS_PER_SEC) > debounce_delay){
+                    if (reading_Mouse != buttonState_Mouse){
+                        buttonState_Mouse = reading_Mouse;
+                         
+                        if (buttonState_Mouse == 1){
+                                vCheckMainMenuButtonInput(mouse_X, 
+                                                            mouse_Y);
+                        }
+                    }
+                }
+                lastState_Mouse = reading_Mouse;
+
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
-                vDrawStartScreen(state);
+                vDrawMainMenu(state);
                 
                 vDrawFPS();
 
                 xSemaphoreGive(ScreenLock);
+
                 if (ticks == 50)    {
                     if (state == 1)   {
                         state = 0;

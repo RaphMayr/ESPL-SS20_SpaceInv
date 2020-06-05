@@ -514,32 +514,59 @@ lib/Gfx/TUM_Utils.c.s:
 	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.s
 .PHONY : lib/Gfx/TUM_Utils.c.s
 
-lib/Gfx/static_graphics.o: lib/Gfx/static_graphics.c.o
+lib/Gfx/menu_graphics.o: lib/Gfx/menu_graphics.c.o
 
-.PHONY : lib/Gfx/static_graphics.o
+.PHONY : lib/Gfx/menu_graphics.o
 
 # target to build an object file
-lib/Gfx/static_graphics.c.o:
-	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.o
-.PHONY : lib/Gfx/static_graphics.c.o
+lib/Gfx/menu_graphics.c.o:
+	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o
+.PHONY : lib/Gfx/menu_graphics.c.o
 
-lib/Gfx/static_graphics.i: lib/Gfx/static_graphics.c.i
+lib/Gfx/menu_graphics.i: lib/Gfx/menu_graphics.c.i
 
-.PHONY : lib/Gfx/static_graphics.i
+.PHONY : lib/Gfx/menu_graphics.i
 
 # target to preprocess a source file
-lib/Gfx/static_graphics.c.i:
-	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.i
-.PHONY : lib/Gfx/static_graphics.c.i
+lib/Gfx/menu_graphics.c.i:
+	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.i
+.PHONY : lib/Gfx/menu_graphics.c.i
 
-lib/Gfx/static_graphics.s: lib/Gfx/static_graphics.c.s
+lib/Gfx/menu_graphics.s: lib/Gfx/menu_graphics.c.s
 
-.PHONY : lib/Gfx/static_graphics.s
+.PHONY : lib/Gfx/menu_graphics.s
 
 # target to generate assembly for a file
-lib/Gfx/static_graphics.c.s:
-	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/static_graphics.c.s
-.PHONY : lib/Gfx/static_graphics.c.s
+lib/Gfx/menu_graphics.c.s:
+	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.s
+.PHONY : lib/Gfx/menu_graphics.c.s
+
+lib/Gfx/play_graphics.o: lib/Gfx/play_graphics.c.o
+
+.PHONY : lib/Gfx/play_graphics.o
+
+# target to build an object file
+lib/Gfx/play_graphics.c.o:
+	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o
+.PHONY : lib/Gfx/play_graphics.c.o
+
+lib/Gfx/play_graphics.i: lib/Gfx/play_graphics.c.i
+
+.PHONY : lib/Gfx/play_graphics.i
+
+# target to preprocess a source file
+lib/Gfx/play_graphics.c.i:
+	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.i
+.PHONY : lib/Gfx/play_graphics.c.i
+
+lib/Gfx/play_graphics.s: lib/Gfx/play_graphics.c.s
+
+.PHONY : lib/Gfx/play_graphics.s
+
+# target to generate assembly for a file
+lib/Gfx/play_graphics.c.s:
+	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.s
+.PHONY : lib/Gfx/play_graphics.c.s
 
 src/main.o: src/main.c.o
 
@@ -620,9 +647,12 @@ help:
 	@echo "... lib/Gfx/TUM_Utils.o"
 	@echo "... lib/Gfx/TUM_Utils.i"
 	@echo "... lib/Gfx/TUM_Utils.s"
-	@echo "... lib/Gfx/static_graphics.o"
-	@echo "... lib/Gfx/static_graphics.i"
-	@echo "... lib/Gfx/static_graphics.s"
+	@echo "... lib/Gfx/menu_graphics.o"
+	@echo "... lib/Gfx/menu_graphics.i"
+	@echo "... lib/Gfx/menu_graphics.s"
+	@echo "... lib/Gfx/play_graphics.o"
+	@echo "... lib/Gfx/play_graphics.i"
+	@echo "... lib/Gfx/play_graphics.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

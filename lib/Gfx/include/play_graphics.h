@@ -1,8 +1,8 @@
-#ifndef __STAT_GRAPH_H__
-#define __STAT_GRAPH_H__
+#ifndef __PLAY_GRAPH_H__
+#define __PLAY_GRAPH_H__
 
 /**
- * @defgroup static_graphics GAME GRAPHICS API
+ * @defgroup play_graphics GRAPHICS API
  * 
  * Functions to display gamescreen and objects
  * reference points of figures are included in docs
@@ -30,7 +30,7 @@ void vDrawPlayScreen(void);
  * @param pos_x x position of reference point
  * @param pos_y y position of reference point
  */
-void vDrawMotherShip(signed short pos_x, signed short pos_y);
+void vDrawPlayer(signed short pos_x, signed short pos_y);
 /**
  * @brief draws bunker texture 
  * 
@@ -62,5 +62,15 @@ void vDraw_crabAlien(signed short pos_x, signed short pos_y,
 */
 void vDraw_jellyAlien(signed short pos_x, signed short pos_y,
                         signed short state);
+/**
+ * @brief draws alien matrix
+ * 
+ * @param pos_x x position of all aliens
+ * @param pos_y y position of all aliens 
+ * 
+ * reference point is top left corner 
+ */
+void vDrawAliens(signed short pos_x, signed short pos_y,
+                    signed short state);
 
 #endif

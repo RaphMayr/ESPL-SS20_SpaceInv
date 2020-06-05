@@ -19,52 +19,13 @@
 #include "TUM_Utils.h"
 #include "TUM_Font.h"
 
-#include "static_graphics.h"
+#include "play_graphics.h"
 
 #define CENTER_X SCREEN_WIDTH/2
 #define CENTER_Y SCREEN_HEIGHT/2
 
 #define px 2
 
-void vDrawStartScreen(unsigned short state) {
-    signed short x_startscreen = 100;
-    signed short y_startscreen = 0;
-    signed short w_startscreen = 440;
-    signed short h_playscreen = 480;
-
-    signed short x_welcometext = CENTER_X;
-    signed short y_welcometext = CENTER_Y - 50;
-    static char welcometext[100];
-    static int width_welcometext = 0;
-
-    signed short x_continutext = CENTER_X;
-    signed short y_continutext = CENTER_Y + 50;
-    static char continutext[100];
-    static int width_continutext = 0; 
-
-    tumDrawClear(White);
-    tumDrawFilledBox(x_startscreen, y_startscreen,
-                    w_startscreen, h_playscreen,
-                    Black);
-
-    sprintf(welcometext, "Welcome to Space Invaders!"); 
-    sprintf(continutext, "Press (SPACE) to enter game");
-
-    tumGetTextSize((char *) welcometext,
-                    &width_welcometext, NULL);
-    tumDrawText(welcometext,
-                x_welcometext - width_welcometext / 2,
-                y_welcometext,
-                Green);
-    if (state == 0) {
-        tumGetTextSize((char *) continutext,
-                        &width_continutext, NULL);
-        tumDrawText(continutext,
-                    x_continutext - width_continutext / 2,
-                    y_continutext,
-                    Green);
-    }
-}
 
 void vDrawPlayScreen(void) {
     signed short x_playscreen = 100;
@@ -84,7 +45,7 @@ void vDrawPlayScreen(void) {
                 h_playscreen - 30, 1, Green);
 }
 
-void vDrawMotherShip(signed short pos_x, signed short pos_y) {
+void vDrawPlayer(signed short pos_x, signed short pos_y) {
 
     unsigned int color = Green;
 
@@ -124,6 +85,38 @@ void vDrawBunker(signed short pos_x, signed short pos_y) {
 
     tumDrawFilledBox(pos_x, pos_y + 11*px, 5*px, 2*px, color);  // box -3l
     tumDrawFilledBox(pos_x + 19*px, pos_y + 11*px, 5*px, 2*px, color);
+}
+
+void vDrawAliens(signed short pos_x, signed short pos_y, 
+                    signed short state)
+{
+    const unsigned short x_distance = 30;
+    const unsigned short y_distance = 40;
+
+    for (int i=0; i<9; i++) {
+        vDraw_jellyAlien(pos_x + i*x_distance, pos_y, state);
+    }
+
+    for (int i=0; i<9; i++) {
+        vDraw_crabAlien(pos_x + i*x_distance,  
+                        pos_y + y_distance, state);
+    }
+
+    for (int i=0; i<9; i++) {
+        vDraw_crabAlien(pos_x + i*x_distance,  
+                        pos_y + 2*y_distance, state);
+    }
+
+    for (int i=0; i<9; i++) {
+        vDraw_fredAlien(pos_x + i*35 - 20,
+                        pos_y + 3*y_distance, state);
+    }
+
+    for (int i=0; i<9; i++) {
+        vDraw_fredAlien(pos_x + i*35 - 20,
+                        pos_y + 4*y_distance, state);
+    }
+    
 }
 
 void vDraw_fredAlien(signed short pos_x, signed short pos_y, 
