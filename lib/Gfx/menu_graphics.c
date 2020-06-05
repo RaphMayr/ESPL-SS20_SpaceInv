@@ -135,7 +135,7 @@ void vDrawMainMenu(unsigned short state) {
                 Green);
 }
 
-void vCheckMainMenuButtonInput(signed short mouse_X, 
+int vCheckMainMenuButtonInput(signed short mouse_X, 
                                 signed short mouse_Y) 
 {  
     
@@ -146,6 +146,7 @@ void vCheckMainMenuButtonInput(signed short mouse_X,
         if (mouse_Y > CENTER_Y + 50 && 
             mouse_Y < CENTER_Y + 80) {
                 printf("CHEATS Btn pressed\n");
+                return 1;
         }
     }
     // check if high-scores button was pressed
@@ -155,8 +156,10 @@ void vCheckMainMenuButtonInput(signed short mouse_X,
         if (mouse_Y > CENTER_Y + 100 && 
             mouse_Y < CENTER_Y + 130) {
                 printf("High-Scores Btn pressed\n");
+                return 2;
         }
     }
+    return 0;
 }
 
 void vDrawPauseScreen()
@@ -227,4 +230,56 @@ void vDrawPauseScreen()
                 CENTER_Y + 100,
                 Green);
     
+}
+
+void vDrawCheatScreen()
+{
+    // coordinates of Gamescreen
+    signed short x_cheatscreen = 100;
+    signed short y_cheatscreen = 0;
+    signed short w_cheatscreen = 440;
+    signed short h_cheatscreen = 480;
+
+    static char text[50];
+    static int text_width = 0;
+
+    // drawing Gamescreen
+    tumDrawClear(White);
+    tumDrawFilledBox(x_cheatscreen, y_cheatscreen,
+                    w_cheatscreen, h_cheatscreen,
+                    Black);
+
+    sprintf(text, "CHEAT SCREEN");
+    tumGetTextSize((char *) text,
+                    &text_width, NULL);
+    tumDrawText(text,
+                CENTER_X - text_width / 2,
+                CENTER_Y,
+                Green);
+}
+
+void vDrawHScoreScreen()
+{
+    // coordinates of Gamescreen
+    signed short x_hscorescreen = 100;
+    signed short y_hscorescreen = 0;
+    signed short w_hscorescreen = 440;
+    signed short h_hscorescreen = 480;
+
+    static char text[50];
+    static int text_width = 0;
+
+    // drawing Gamescreen
+    tumDrawClear(White);
+    tumDrawFilledBox(x_hscorescreen, y_hscorescreen,
+                    w_hscorescreen, h_hscorescreen,
+                    Black);
+
+    sprintf(text, "High-SCORE SCREEN");
+    tumGetTextSize((char *) text,
+                    &text_width, NULL);
+    tumDrawText(text,
+                CENTER_X - text_width / 2,
+                CENTER_Y,
+                Green);
 }

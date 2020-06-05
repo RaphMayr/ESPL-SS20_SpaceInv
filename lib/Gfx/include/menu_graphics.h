@@ -25,11 +25,19 @@ void vDrawMainMenu(unsigned short state);
  * @param mouse_X x-position of Mouse 
  * @param mouse_Y y-position of Mouse
  */
-void vCheckMainMenuButtonInput(signed short mouse_X, 
+int vCheckMainMenuButtonInput(signed short mouse_X, 
                                 signed short mouse_Y);
 /**
  * @brief draws pause screen
  */
 void vDrawPauseScreen();
+/**
+ * @brief draws Cheat screen 
+ */
+void vDrawCheatScreen();
+/**
+ * @brief draws High score screen
+ */
+void vDrawHScoreScreen();
 
 #endif

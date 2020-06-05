@@ -36,6 +36,8 @@
 static TaskHandle_t startscreen_task = NULL;
 static TaskHandle_t playscreen_task = NULL;
 static TaskHandle_t pausescreen_task = NULL;
+static TaskHandle_t cheatview_task = NULL;
+static TaskHandle_t hscoreview_task = NULL;
 static TaskHandle_t bufferswap = NULL;
 static TaskHandle_t statemachine = NULL;
 
@@ -155,8 +157,99 @@ void vSwapBuffers(void *pvParameters)
 
 // TASKS #########################################################################
 
-    
-                        
+void vStart_screen(void *pvParameters) {
+
+    unsigned short state = 0;
+    int ticks = 0;
+
+    signed short mouse_X = 0;
+    signed short mouse_Y = 0;
+
+    int buttonState_Mouse = 0;
+    int lastState_Mouse = 0;
+    clock_t lastDebounceTime_Mouse;
+
+    clock_t timestamp;
+    double debounce_delay = 0.025;
+
+    int next_state_play = 1;
+    int next_state_cheats = 3;
+    int next_state_highscores = 4;
+
+    int button_pressed = 0;
+
+    while(1) {
+        if (DrawSignal) {
+            if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
+                pdTRUE) {
+                xGetButtonInput(); // Update global input
+                // currently in state 0
+                /* when SPACE is pressed send signal 
+                    to state machine to go to state 1
+                    -> enter game 
+                */ 
+                if(buttons.buttons[KEYCODE(SPACE)]) {
+                    xSemaphoreGive(state_machine_signal);
+                    xQueueSend(next_state_queue, &next_state_play, 0);
+                }
+                // check button inputs
+                // get mouse coordinates 
+                mouse_X = tumEventGetMouseX();
+                mouse_Y = tumEventGetMouseY();
+
+                int reading_Mouse = tumEventGetMouseLeft();
+
+                if (reading_Mouse != lastState_Mouse) {
+                    lastDebounceTime_Mouse = clock();
+                }
+                timestamp = clock();
+                if((((double) (timestamp - lastDebounceTime_Mouse)
+                        )/ CLOCKS_PER_SEC) > debounce_delay){
+                    if (reading_Mouse != buttonState_Mouse){
+                        buttonState_Mouse = reading_Mouse;
+                         
+                        if (buttonState_Mouse == 1){
+                                button_pressed = vCheckMainMenuButtonInput(mouse_X, 
+                                                            mouse_Y);
+                            if (button_pressed == 1) {
+                                xSemaphoreGive(state_machine_signal);
+                                xQueueSend(next_state_queue, 
+                                            &next_state_cheats, 0);
+                            }
+                            if (button_pressed == 2) {
+                                xSemaphoreGive(state_machine_signal);
+                                xQueueSend(next_state_queue, 
+                                            &next_state_highscores, 0);
+                            }
+                        }
+                    }
+                }
+                lastState_Mouse = reading_Mouse;
+
+                xSemaphoreTake(ScreenLock, portMAX_DELAY);
+
+                vDrawMainMenu(state);
+                
+                vDrawFPS();
+
+                xSemaphoreGive(ScreenLock);
+
+                if (ticks == 50)    {
+                    if (state == 1)   {
+                        state = 0;
+                    }   
+                    else {
+                        state = 1;
+                    }
+                    ticks = 0;
+                }
+                ticks++;
+
+            } 
+        } 
+    }
+}
+
 void vPlay_screen(void *pvParameters)
 {
     signed short x_mothership = CENTER_X - 6*px;
@@ -231,86 +324,6 @@ void vPlay_screen(void *pvParameters)
     }
 }
 
-void vStart_screen(void *pvParameters) {
-
-    unsigned short state = 0;
-    int ticks = 0;
-
-    signed short mouse_X = 0;
-    signed short mouse_Y = 0;
-
-    int buttonState_Mouse = 0;
-    int lastState_Mouse = 0;
-    clock_t lastDebounceTime_Mouse;
-
-    clock_t timestamp;
-    double debounce_delay = 0.025;
-
-    int next_state_play = 1;
-
-
-    while(1) {
-        if (DrawSignal) {
-            if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
-                pdTRUE) {
-                xGetButtonInput(); // Update global input
-                // currently in state 0
-                /* when SPACE is pressed send signal 
-                    to state machine to go to state 1
-                    -> enter game 
-                */ 
-                if(buttons.buttons[KEYCODE(SPACE)]) {
-                    xSemaphoreGive(state_machine_signal);
-                    xQueueSend(next_state_queue, &next_state_play, 0);
-                }
-                // check button inputs
-                // get mouse coordinates 
-                mouse_X = tumEventGetMouseX();
-                mouse_Y = tumEventGetMouseY();
-
-                int reading_Mouse = tumEventGetMouseLeft();
-
-                if (reading_Mouse != lastState_Mouse) {
-                    lastDebounceTime_Mouse = clock();
-                }
-                timestamp = clock();
-                if((((double) (timestamp - lastDebounceTime_Mouse)
-                        )/ CLOCKS_PER_SEC) > debounce_delay){
-                    if (reading_Mouse != buttonState_Mouse){
-                        buttonState_Mouse = reading_Mouse;
-                         
-                        if (buttonState_Mouse == 1){
-                                vCheckMainMenuButtonInput(mouse_X, 
-                                                            mouse_Y);
-                        }
-                    }
-                }
-                lastState_Mouse = reading_Mouse;
-
-                xSemaphoreTake(ScreenLock, portMAX_DELAY);
-
-                vDrawMainMenu(state);
-                
-                vDrawFPS();
-
-                xSemaphoreGive(ScreenLock);
-
-                if (ticks == 50)    {
-                    if (state == 1)   {
-                        state = 0;
-                    }   
-                    else {
-                        state = 1;
-                    }
-                    ticks = 0;
-                }
-                ticks++;
-
-            } 
-        } 
-    }
-}
-
 void vPauseScreen(void *pvParameters) {
 
     int next_state_mainmenu = 0;
@@ -346,14 +359,75 @@ void vPauseScreen(void *pvParameters) {
 
                 xSemaphoreGive(ScreenLock);
 
-            } 
+        } 
     }
+}
+
+void vCheatView(void *pvParameters) {
+
+    int next_state_mainmenu = 0;
+
+    while(1) {
+        if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
+            pdTRUE) {
+            xGetButtonInput(); // Update global input
+            // currently in state 3
+            /* when escape is pressed send signal 
+                to state machine to go to state 0
+                -> start screen
+            */ 
+            if(buttons.buttons[KEYCODE(ESCAPE)]) {
+                xSemaphoreGive(state_machine_signal);
+                xQueueSend(next_state_queue, &next_state_mainmenu, 0);
+            }
+        
+            xSemaphoreTake(ScreenLock, portMAX_DELAY);
+
+            vDrawCheatScreen();
+                
+            vDrawFPS();
+
+            xSemaphoreGive(ScreenLock);
+        } 
+    } 
+}
+
+void vHScoreView(void *pvParameters) {
+
+    int next_state_mainmenu = 0;
+
+    while(1) {
+        if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
+            pdTRUE) {
+            xGetButtonInput(); // Update global input
+            // currently in state 4
+            /* when escape is pressed send signal 
+                to state machine to go to state 0
+                -> start screen
+            */ 
+            if(buttons.buttons[KEYCODE(ESCAPE)]) {
+                xSemaphoreGive(state_machine_signal);
+                xQueueSend(next_state_queue, &next_state_mainmenu, 0);
+            }
+        
+            xSemaphoreTake(ScreenLock, portMAX_DELAY);
+
+            vDrawHScoreScreen();
+                
+            vDrawFPS();
+
+            xSemaphoreGive(ScreenLock);
+        } 
+    }
+    
 }
 
 void vStateMachine(void *pvParameters) {
 
     vTaskSuspend(playscreen_task);
     vTaskSuspend(pausescreen_task);
+    vTaskSuspend(cheatview_task);
+    vTaskSuspend(hscoreview_task);
 
     int state = 0;
 
@@ -370,17 +444,37 @@ void vStateMachine(void *pvParameters) {
                 if (state == 0) {
                     vTaskSuspend(playscreen_task);
                     vTaskSuspend(pausescreen_task);
+                    vTaskSuspend(cheatview_task);
+                    vTaskSuspend(hscoreview_task);
                     vTaskResume(startscreen_task);
                 }
                 if (state == 1) {
                     vTaskSuspend(startscreen_task);
                     vTaskSuspend(pausescreen_task);
+                    vTaskSuspend(cheatview_task);
+                    vTaskSuspend(hscoreview_task);
                     vTaskResume(playscreen_task);
                 }
                 if (state == 2) {
                     vTaskSuspend(playscreen_task);
                     vTaskSuspend(startscreen_task);
+                    vTaskSuspend(cheatview_task);
+                    vTaskSuspend(hscoreview_task);
                     vTaskResume(pausescreen_task);
+                }
+                if (state == 3) {
+                    vTaskSuspend(playscreen_task);
+                    vTaskSuspend(startscreen_task);
+                    vTaskSuspend(pausescreen_task);
+                    vTaskSuspend(hscoreview_task);
+                    vTaskResume(cheatview_task);
+                }
+                if (state == 4) {
+                    vTaskSuspend(playscreen_task);
+                    vTaskSuspend(startscreen_task);
+                    vTaskSuspend(pausescreen_task);
+                    vTaskSuspend(cheatview_task);
+                    vTaskResume(hscoreview_task);
                 }
                 last_change = xTaskGetTickCount();
             }
@@ -467,6 +561,16 @@ int main(int argc, char *argv[])
                 NULL, mainGENERIC_PRIORITY, &pausescreen_task) != pdPASS) {
         
         PRINT_TASK_ERROR("pausescreen_task");
+    }
+    if (xTaskCreate(vCheatView, "", mainGENERIC_STACK_SIZE * 2,
+                NULL, mainGENERIC_PRIORITY, &cheatview_task) != pdPASS) {
+        
+        PRINT_TASK_ERROR("cheatview_task");
+    }
+    if (xTaskCreate(vHScoreView, "", mainGENERIC_STACK_SIZE * 2,
+                NULL, mainGENERIC_PRIORITY, &hscoreview_task) != pdPASS) {
+        
+        PRINT_TASK_ERROR("highscoreview_task");
     }
 
 
