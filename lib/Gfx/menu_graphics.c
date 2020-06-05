@@ -67,6 +67,10 @@ void vDrawMainMenu(unsigned short state) {
     static char hscoreBtn_str[50];
     static int width_hscoreBtn_str = 0;
 
+    // quitting Text
+    static char quit_str[50];
+    static int width_quit_str = 0;
+
     // drawing Gamescreen
     tumDrawClear(White);
     tumDrawFilledBox(x_startscreen, y_startscreen,
@@ -121,6 +125,14 @@ void vDrawMainMenu(unsigned short state) {
                 CENTER_Y + 110 - DEFAULT_FONT_SIZE / 2,
                 White);
 
+    sprintf(quit_str, "(Q) to exit game");
+
+    tumGetTextSize((char *) quit_str,
+                    &width_quit_str, NULL);
+    tumDrawText(quit_str,
+                CENTER_X - width_quit_str / 2,
+                CENTER_Y + 200, 
+                Green);
 }
 
 void vCheckMainMenuButtonInput(signed short mouse_X, 
@@ -145,4 +157,74 @@ void vCheckMainMenuButtonInput(signed short mouse_X,
                 printf("High-Scores Btn pressed\n");
         }
     }
+}
+
+void vDrawPauseScreen()
+{
+    // coordinates of Gamescreen
+    signed short x_pausescreen = 100;
+    signed short y_pausescreen = 0;
+    signed short w_pausescreen = 440;
+    signed short h_pausescreen = 480;
+
+    // coordinates of Pause figure
+    signed short x_pausefigureleft = CENTER_X - 30;
+    signed short x_pausefigureright = CENTER_X + 10;
+    signed short y_pausefigure = CENTER_Y - 150;
+    signed short w_pausefigure = 20;
+    signed short h_pausefigure = 50;
+
+    // paused String 
+    static char pause_str[50];
+    static int width_pause_str = 0;
+
+    // main menu text
+    static char mainmenu_str[50];
+    static int width_mainmenu_str = 0;
+
+    // continue text
+    static char continu_str[50];
+    static int width_continu_str = 0;
+
+    // drawing Gamescreen
+    tumDrawClear(White);
+    tumDrawFilledBox(x_pausescreen, y_pausescreen,
+                    w_pausescreen, h_pausescreen,
+                    Black);
+
+    // drawing Pause figure
+    tumDrawBox(x_pausefigureleft, y_pausefigure,
+                w_pausefigure, h_pausefigure,
+                White);
+    tumDrawBox(x_pausefigureright, y_pausefigure,
+                w_pausefigure, h_pausefigure,
+                White);
+
+    // displaying Pause Text
+    sprintf(pause_str, "PAUSED");
+    tumGetTextSize((char *) pause_str,
+                    &width_pause_str, NULL);
+    tumDrawText(pause_str, 
+                CENTER_X - width_pause_str / 2,
+                CENTER_Y - 50,
+                Green);
+
+    // displaying Main Menu Text
+    sprintf(mainmenu_str, "(ESC) MAIN MENU");
+    tumGetTextSize((char *) mainmenu_str,
+                    &width_mainmenu_str, NULL);
+    tumDrawText(mainmenu_str, 
+                CENTER_X - width_mainmenu_str / 2,
+                CENTER_Y + 50,
+                Green);
+    
+    // displaying Continue Text
+    sprintf(continu_str, "(SPACE) CONTINUE");
+    tumGetTextSize((char *) continu_str,
+                    &width_continu_str, NULL);
+    tumDrawText(continu_str, 
+                CENTER_X - width_continu_str / 2,
+                CENTER_Y + 100,
+                Green);
+    
 }

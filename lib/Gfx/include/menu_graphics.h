@@ -27,6 +27,9 @@ void vDrawMainMenu(unsigned short state);
  */
 void vCheckMainMenuButtonInput(signed short mouse_X, 
                                 signed short mouse_Y);
-
+/**
+ * @brief draws pause screen
+ */
+void vDrawPauseScreen();
 
 #endif

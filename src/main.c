@@ -32,14 +32,18 @@
 #define CENTER_X SCREEN_WIDTH/2
 #define CENTER_Y SCREEN_HEIGHT/2
 
-static TaskHandle_t drawtask = NULL;
+
 static TaskHandle_t startscreen_task = NULL;
+static TaskHandle_t playscreen_task = NULL;
+static TaskHandle_t pausescreen_task = NULL;
 static TaskHandle_t bufferswap = NULL;
 static TaskHandle_t statemachine = NULL;
 
 static SemaphoreHandle_t DrawSignal = NULL;
 static SemaphoreHandle_t ScreenLock = NULL;
 static SemaphoreHandle_t state_machine_signal = NULL;
+
+static QueueHandle_t next_state_queue = NULL;
 
 
 typedef struct buttons_buffer {
@@ -57,16 +61,6 @@ void xGetButtonInput(void)
         xSemaphoreGive(buttons.lock);
     }
 }  
-
-void vCheckButtonInput(void)
-{
-    if (buttons.buttons[KEYCODE(SPACE)]) {
-        xSemaphoreGive(state_machine_signal); 
-    }
-    if (buttons.buttons[KEYCODE(ESCAPE)]) {
-        printf("Pausing...\n");
-    }
-}
 
 void checkDraw(unsigned char status, const char *msg)
 {
@@ -163,7 +157,7 @@ void vSwapBuffers(void *pvParameters)
 
     
                         
-void vDrawFigures(void *pvParameters)
+void vPlay_screen(void *pvParameters)
 {
     signed short x_mothership = CENTER_X - 6*px;
     signed short y_mothership = CENTER_Y + 175;
@@ -187,12 +181,22 @@ void vDrawFigures(void *pvParameters)
 
     int ticks = 0;
 
+    int next_state_pause = 2;
+
     while (1) {
         if (DrawSignal) {
             if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
                 pdTRUE) {
                 xGetButtonInput(); // Update global input
-                vCheckButtonInput();
+                // currently in state 1
+                /* when escape is pressed send signal 
+                    to state machine to go to state 2
+                    -> PAUSE screen
+                */ 
+                if(buttons.buttons[KEYCODE(ESCAPE)]) {
+                    xSemaphoreGive(state_machine_signal);
+                    xQueueSend(next_state_queue, &next_state_pause, 0);
+                }
                 
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
@@ -242,14 +246,23 @@ void vStart_screen(void *pvParameters) {
     clock_t timestamp;
     double debounce_delay = 0.025;
 
+    int next_state_play = 1;
+
 
     while(1) {
         if (DrawSignal) {
             if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
                 pdTRUE) {
                 xGetButtonInput(); // Update global input
-                vCheckButtonInput();
-
+                // currently in state 0
+                /* when SPACE is pressed send signal 
+                    to state machine to go to state 1
+                    -> enter game 
+                */ 
+                if(buttons.buttons[KEYCODE(SPACE)]) {
+                    xSemaphoreGive(state_machine_signal);
+                    xQueueSend(next_state_queue, &next_state_play, 0);
+                }
                 // check button inputs
                 // get mouse coordinates 
                 mouse_X = tumEventGetMouseX();
@@ -298,36 +311,76 @@ void vStart_screen(void *pvParameters) {
     }
 }
 
+void vPauseScreen(void *pvParameters) {
+
+    int next_state_mainmenu = 0;
+    int next_state_play = 1;
+
+    while(1) {
+        if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
+                pdTRUE) {
+                xGetButtonInput(); // Update global input
+                // currently in state 2
+                /* when escape is pressed send signal 
+                    to state machine to go to state 0
+                    -> start screen
+                */ 
+                if(buttons.buttons[KEYCODE(ESCAPE)]) {
+                    xSemaphoreGive(state_machine_signal);
+                    xQueueSend(next_state_queue, &next_state_mainmenu, 0);
+                }
+                /* when SPACE is pressed send signal
+                    to state machine to go to state 1
+                    -> resume playing
+                */
+                if(buttons.buttons[KEYCODE(SPACE)]) {
+                    xSemaphoreGive(state_machine_signal);
+                    xQueueSend(next_state_queue, &next_state_play, 0);
+                }
+
+                xSemaphoreTake(ScreenLock, portMAX_DELAY);
+
+                vDrawPauseScreen();
+                
+                vDrawFPS();
+
+                xSemaphoreGive(ScreenLock);
+
+            } 
+    }
+}
+
 void vStateMachine(void *pvParameters) {
 
-    vTaskSuspend(drawtask);
+    vTaskSuspend(playscreen_task);
+    vTaskSuspend(pausescreen_task);
 
-    unsigned short state = 0;
+    int state = 0;
 
-    const int state_change_period = 1000;
+    const int state_change_period = 750;
     TickType_t last_change = xTaskGetTickCount();
 
     while(1) {
         if (xSemaphoreTake(state_machine_signal, 
                             portMAX_DELAY)) {
+            xQueueReceive(next_state_queue, &state, portMAX_DELAY);
             if ((xTaskGetTickCount() - last_change) >
                     state_change_period) {
-                
-                if (state == 0) {
-                    state = 1;
-                }
-                else if (state == 1) {
-                    state = 0;
-                }
 
                 if (state == 0) {
-                    vTaskSuspend(drawtask);
+                    vTaskSuspend(playscreen_task);
+                    vTaskSuspend(pausescreen_task);
                     vTaskResume(startscreen_task);
                 }
                 if (state == 1) {
                     vTaskSuspend(startscreen_task);
-                    vTaskResume(drawtask);
-                    
+                    vTaskSuspend(pausescreen_task);
+                    vTaskResume(playscreen_task);
+                }
+                if (state == 2) {
+                    vTaskSuspend(playscreen_task);
+                    vTaskSuspend(startscreen_task);
+                    vTaskResume(pausescreen_task);
                 }
                 last_change = xTaskGetTickCount();
             }
@@ -381,30 +434,43 @@ int main(int argc, char *argv[])
     }
 
     state_machine_signal = xSemaphoreCreateBinary();
+    if (!state_machine_signal) {
+        PRINT_ERROR("Failed to create State Machine Signal");
+    }
 
+    next_state_queue = xQueueCreate(1, sizeof(int));
+    if (!next_state_queue) {
+        PRINT_ERROR("Failed to create Next state queue");
+    }
 
-    // Task Creation ##############################
-    // Screen 0 Tasks
+    // Task Creation ##################################################
 
-    xTaskCreate(vSwapBuffers, "", mainGENERIC_STACK_SIZE * 2,
-                NULL, configMAX_PRIORITIES, &bufferswap);
-
-    xTaskCreate(vStateMachine, "", mainGENERIC_STACK_SIZE * 2,
-                NULL, configMAX_PRIORITIES - 1, &statemachine);
-
-
-    if (xTaskCreate(vDrawFigures, "", mainGENERIC_STACK_SIZE * 2,
-                NULL, mainGENERIC_PRIORITY, &drawtask) != pdPASS) {
-        
-        PRINT_TASK_ERROR("drawTask");
+    if (xTaskCreate(vSwapBuffers, "", mainGENERIC_STACK_SIZE * 2,
+                NULL, configMAX_PRIORITIES, &bufferswap) != pdPASS) {
+        PRINT_TASK_ERROR("swap buffers");
+    }
+    if (xTaskCreate(vStateMachine, "", mainGENERIC_STACK_SIZE * 2,
+                NULL, configMAX_PRIORITIES - 1, &statemachine) != pdPASS) {
+        PRINT_TASK_ERROR("state machine");
     }
     if (xTaskCreate(vStart_screen, "", mainGENERIC_STACK_SIZE * 2,
                 NULL, mainGENERIC_PRIORITY, &startscreen_task) != pdPASS) {
         
         PRINT_TASK_ERROR("startscreen_task");
     }
+    if (xTaskCreate(vPlay_screen, "", mainGENERIC_STACK_SIZE * 2,
+                NULL, mainGENERIC_PRIORITY, &playscreen_task) != pdPASS) {
+        
+        PRINT_TASK_ERROR("playscreen_task");
+    }
+    if (xTaskCreate(vPauseScreen, "", mainGENERIC_STACK_SIZE * 2,
+                NULL, mainGENERIC_PRIORITY, &pausescreen_task) != pdPASS) {
+        
+        PRINT_TASK_ERROR("pausescreen_task");
+    }
 
-    // End of Task Creation #########################
+
+    // End of Task Creation ##############################################
 
     vTaskStartScheduler();
 
