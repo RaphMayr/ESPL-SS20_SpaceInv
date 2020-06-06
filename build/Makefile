@@ -541,6 +541,33 @@ lib/Gfx/menu_graphics.c.s:
 	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.s
 .PHONY : lib/Gfx/menu_graphics.c.s
 
+lib/Gfx/play_dynamics.o: lib/Gfx/play_dynamics.c.o
+
+.PHONY : lib/Gfx/play_dynamics.o
+
+# target to build an object file
+lib/Gfx/play_dynamics.c.o:
+	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o
+.PHONY : lib/Gfx/play_dynamics.c.o
+
+lib/Gfx/play_dynamics.i: lib/Gfx/play_dynamics.c.i
+
+.PHONY : lib/Gfx/play_dynamics.i
+
+# target to preprocess a source file
+lib/Gfx/play_dynamics.c.i:
+	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.i
+.PHONY : lib/Gfx/play_dynamics.c.i
+
+lib/Gfx/play_dynamics.s: lib/Gfx/play_dynamics.c.s
+
+.PHONY : lib/Gfx/play_dynamics.s
+
+# target to generate assembly for a file
+lib/Gfx/play_dynamics.c.s:
+	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.s
+.PHONY : lib/Gfx/play_dynamics.c.s
+
 lib/Gfx/play_graphics.o: lib/Gfx/play_graphics.c.o
 
 .PHONY : lib/Gfx/play_graphics.o
@@ -650,6 +677,9 @@ help:
 	@echo "... lib/Gfx/menu_graphics.o"
 	@echo "... lib/Gfx/menu_graphics.i"
 	@echo "... lib/Gfx/menu_graphics.s"
+	@echo "... lib/Gfx/play_dynamics.o"
+	@echo "... lib/Gfx/play_dynamics.i"
+	@echo "... lib/Gfx/play_dynamics.s"
 	@echo "... lib/Gfx/play_graphics.o"
 	@echo "... lib/Gfx/play_graphics.i"
 	@echo "... lib/Gfx/play_graphics.s"

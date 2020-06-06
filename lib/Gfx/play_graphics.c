@@ -306,3 +306,8 @@ void vDraw_jellyAlien(signed short pos_x, signed short pos_y,
                         px, px, primary_color);
     }
 }
+
+void vDrawProjectile(signed short pos_x, signed short pos_y)
+{   
+    tumDrawFilledBox(pos_x, pos_y, px, 2*px, Green);
+}

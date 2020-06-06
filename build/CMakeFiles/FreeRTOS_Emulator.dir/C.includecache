@@ -202,6 +202,8 @@ SDL2/SDL_ttf.h
 
 ../lib/Gfx/include/menu_graphics.h
 
+../lib/Gfx/include/play_dynamics.h
+
 ../lib/Gfx/include/play_graphics.h
 
 /home/rtos-sim/ESPL-SS20_SpaceInv/lib/AsyncIO/AsyncIO.c
@@ -464,6 +466,46 @@ TUM_Font.h
 menu_graphics.h
 /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/menu_graphics.h
 
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/play_dynamics.c
+math.h
+-
+stdio.h
+-
+stdlib.h
+-
+time.h
+-
+inttypes.h
+-
+SDL2/SDL_scancode.h
+-
+FreeRTOS.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/FreeRTOS.h
+queue.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/queue.h
+semphr.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/semphr.h
+task.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/task.h
+timers.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/timers.h
+TUM_Ball.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Ball.h
+TUM_Draw.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Draw.h
+TUM_Event.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Event.h
+TUM_Sound.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Sound.h
+TUM_Utils.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Utils.h
+TUM_Font.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Font.h
+play_dynamics.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/play_dynamics.h
+play_graphics.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/play_graphics.h
+
 /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/play_graphics.c
 math.h
 -
@@ -543,4 +585,6 @@ play_graphics.h
 /home/rtos-sim/ESPL-SS20_SpaceInv/src/play_graphics.h
 menu_graphics.h
 /home/rtos-sim/ESPL-SS20_SpaceInv/src/menu_graphics.h
+play_dynamics.h
+/home/rtos-sim/ESPL-SS20_SpaceInv/src/play_dynamics.h
 

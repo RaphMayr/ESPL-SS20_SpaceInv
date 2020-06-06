@@ -25,7 +25,7 @@ void vDrawStartScreen(unsigned short state);
  */ 
 void vDrawPlayScreen(void);
 /**
- * @brief draws mothership texture
+ * @brief draws Player texture
  * 
  * @param pos_x x position of reference point
  * @param pos_y y position of reference point
@@ -72,5 +72,9 @@ void vDraw_jellyAlien(signed short pos_x, signed short pos_y,
  */
 void vDrawAliens(signed short pos_x, signed short pos_y,
                     signed short state);
+/**
+ * @brief draws Projectiles
+ */ 
+void vDrawProjectile(signed short pos_x, signed short pos_y);
 
 #endif
