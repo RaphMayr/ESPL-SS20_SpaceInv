@@ -357,6 +357,7 @@ void vPauseScreen(void *pvParameters) {
                         xSemaphoreGive(buttons.lock);
                         xSemaphoreGive(state_machine_signal);
                         xQueueSend(next_state_queue, &next_state_mainmenu, 0);
+                        vInit_playscreen();
                     }
                     /* when SPACE is pressed send signal
                         to state machine to go to state 1
@@ -460,7 +461,7 @@ void vStateMachine(void *pvParameters) {
 
     int state = 0;
 
-    const int state_change_period = 750;
+    const int state_change_period = 500;
     TickType_t last_change = xTaskGetTickCount();
 
     while(1) {

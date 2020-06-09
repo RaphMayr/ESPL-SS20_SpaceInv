@@ -28,13 +28,29 @@
 #define LEFT_CONSTRAINT_X 100
 #define RIGHT_CONSTRAINT_X 540
 
+#define ALIEN_COUNT 50
+
+#define JELLY_COUNT 10
+
 Object player = { 0 };
 Object projectile = { 0 };
 Object upper_wall = { 0 };
 
-Object jelly = { 0 };
+Object jelly0 = { 0 };
+Object jelly1 = { 0 };
+Object jelly2 = { 0 };
+Object jelly3 = { 0 };
+Object jelly4 = { 0 };
+Object jelly5 = { 0 };
+Object jelly6 = { 0 };
+Object jelly7 = { 0 };
+Object jelly8 = { 0 };
+Object jelly9 = { 0 };
+
 Object crab = { 0 };
 Object fred = { 0 };
+
+Object aliens[ALIEN_COUNT];
 
 void vInit_playscreen()
 {
@@ -66,20 +82,33 @@ void vInit_playscreen()
 
         xSemaphoreGive(player.lock);
     }
-    jelly.lock = xSemaphoreCreateMutex();
-    if (xSemaphoreTake(jelly.lock, 0)) {
+    aliens[0] = jelly0;
+    aliens[1] = jelly1;
+    aliens[2] = jelly2;
+    aliens[3] = jelly3;
+    aliens[4] = jelly4;
+    aliens[5] = jelly5;
+    aliens[6] = jelly6;
+    aliens[7] = jelly7;
+    aliens[8] = jelly8;
+    aliens[9] = jelly9;
 
-        jelly.x_coord = CENTER_X;
-        jelly.y_coord = CENTER_Y - 100;
+    for (int i=0; i<10; i++) {
+        aliens[i].lock = xSemaphoreCreateMutex();
+        if (xSemaphoreTake(aliens[i].lock, 0)) {
 
-        jelly.f_x = jelly.x_coord;
-        jelly.f_y = jelly.y_coord;
+            aliens[i].x_coord = 200 + i*30;
+            aliens[i].y_coord = CENTER_Y - 100;
 
-        jelly.type = 'J';
+            aliens[i].f_x = aliens[i].x_coord;
+            aliens[i].f_y = aliens[i].y_coord;
 
-        jelly.state = 1;
+            aliens[i].type = 'J';
 
-        xSemaphoreGive(jelly.lock);
+            aliens[i].state = 1;
+
+            xSemaphoreGive(aliens[i].lock);
+        }
     }
     crab.lock = xSemaphoreCreateMutex();
     if (xSemaphoreTake(crab.lock, 0)) {
@@ -93,6 +122,8 @@ void vInit_playscreen()
         crab.type = 'C';
 
         crab.state = 1;
+
+        aliens[10] = crab;
 
         xSemaphoreGive(crab.lock);
     }
@@ -109,51 +140,58 @@ void vInit_playscreen()
 
         fred.state = 1;
 
+        aliens[11] = fred;
+
         xSemaphoreGive(fred.lock);
     }
 }
 
 void vDraw_playscreen(unsigned int Flags[4], unsigned int ms)
 {
-    vUpdate_player(Flags[0], Flags[1], ms);
+    Object alien;
+    vDrawPlayScreen();
+
     // projectile is initialized when shoot flag is set and not active
     if (Flags[2] && (projectile.state == 0)) {  
         vCreate_projectile();
     }
 
-    vDrawPlayScreen();
+    vUpdate_player(Flags[0], Flags[1], ms);
     vDrawPlayer(player.x_coord, player.y_coord);
 
-    if (jelly.state) {
-        vDraw_jellyAlien(jelly.x_coord, jelly.y_coord, Flags[3]);
-        jelly = vUpdate_alien(jelly, Flags[3], ms);
-    }
-    if (crab.state) {
-        vDraw_crabAlien(crab.x_coord, crab.y_coord, Flags[3]);
-        crab = vUpdate_alien(crab, Flags[3], ms);
-    }
-    if (fred.state) {
-        vDraw_fredAlien(fred.x_coord, fred.y_coord, Flags[3]);
-        fred = vUpdate_alien(fred, Flags[3], ms);
-    }
-
     if (projectile.state) {     // as long as no collisions occur
-        vDrawProjectile(projectile.x_coord, projectile.y_coord);
         vUpdate_projectile(ms);
+        vDrawProjectile(projectile.x_coord, projectile.y_coord);
     }
 
-    if (vCheckCollision(jelly)) {
-        jelly = vDelete_alien(jelly);
-        vDelete_projectile();
+    for (int ID=0; ID < 10; ID++){
+        
+        alien = aliens[ID];
+        if (alien.state) {
+            alien = vUpdate_alien(alien, Flags[3], ms);
+            switch (alien.type) {
+                case 'J': 
+                    vDraw_jellyAlien(alien.x_coord,
+                                     alien.y_coord, Flags[3]);
+                    break;
+                case 'C':
+                    vDraw_crabAlien(alien.x_coord, 
+                                    alien.y_coord, Flags[3]);
+                    break;
+                case 'F':
+                    vDraw_fredAlien(alien.x_coord,
+                                    alien.y_coord, Flags[3]);
+                    break;
+            }
+        }
+        if (vCheckCollision(alien)) {
+            alien = vDelete_alien(alien);
+            vDelete_projectile();
+        }
+        aliens[ID] = alien;
+
     }
-    if (vCheckCollision(crab)) {
-        crab = vDelete_alien(crab);
-        vDelete_projectile();
-    }
-    if (vCheckCollision(fred)) {
-        fred = vDelete_alien(fred);
-        vDelete_projectile();
-    }
+    
     if (vCheckCollision(upper_wall)) {
         vDelete_projectile();
     }
@@ -184,12 +222,13 @@ int vCheckCollision(Object alien)
             break;
         case 'W':
             hit_wall_x = alien.x_coord;
-            hit_wall_y = alien.y_coord;
+            hit_wall_y = alien.y_coord + 5*px;
             width = 440;
         default: 
             break;
     }
-    if (hit_wall_y >= projectile.y_coord) {
+    if ((hit_wall_y >= projectile.y_coord)
+            && projectile.y_coord >= hit_wall_y - 5*px) {
         for (int i=0; i<width; i++) {
             if (hit_wall_x + i == projectile.x_coord) {
                 return 1;
@@ -246,6 +285,7 @@ Object vDelete_alien(Object alien) {
 
         xSemaphoreGive(alien.lock);
     }
+
     return alien;
 }
 

@@ -72,7 +72,7 @@ void vDelete_projectile();
  * 
  * @return alien in "deleted" state
  */
-Object vDelete_alien(Object alien);
+Object vDelete_alien();
 /**
  * @brief updates position of player
  * 
@@ -98,4 +98,10 @@ void vUpdate_projectile(unsigned int ms);
  */
 Object vUpdate_alien(Object alien, unsigned int state,
                         unsigned int ms);
+/**
+ * @brief creates a Lasershot originating from one of the aliens
+ * 
+ * @param alien from which the Lasershot shall originate
+ */
+void vCreate_Lasershot(Object alien);
 #endif
