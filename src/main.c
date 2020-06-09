@@ -259,6 +259,13 @@ void vPlay_screen(void *pvParameters)
 {
     int next_state_pause = 2;
 
+    int ticks = 0;
+
+    /**
+     * Signals for play_dynamics.c;
+     * Flag 0: move left; Flag 1: move right
+     * Flag 2: shoot; Flag 3: move aliens
+     */
     unsigned int Flags[4] = { 0 };
 
     TickType_t xLastWakeTime, prevWakeTime;
@@ -272,8 +279,6 @@ void vPlay_screen(void *pvParameters)
             if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
                 pdTRUE) {
                     
-                xLastWakeTime = xTaskGetTickCount();
-
                 xGetButtonInput(); // Update global input
                 // currently in state 1
                 /* when escape is pressed send signal 
@@ -298,10 +303,11 @@ void vPlay_screen(void *pvParameters)
 
                     if (buttons.buttons[KEYCODE(W)]) {
                         Flags[2] = 1;
-                        Flags[3] = 1;
                     }
                     xSemaphoreGive(buttons.lock);
                 }    
+                
+                xLastWakeTime = xTaskGetTickCount();
                 
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
@@ -311,14 +317,23 @@ void vPlay_screen(void *pvParameters)
 
                 xSemaphoreGive(ScreenLock);
 
+                prevWakeTime = xLastWakeTime;
+
+                if (ticks == 100) {
+                    Flags[3] = 1;
+                }
+                if (ticks == 200) {
+                    Flags[3] = 0;
+                    ticks = 0;
+                }
+
+                ticks++;
+
                 Flags[0] = 0;
                 Flags[1] = 0;
-                Flags[2] = 0;
-
-                prevWakeTime = xLastWakeTime;
+                Flags[2] = 0;  
             } 
         } 
-        
     }
 }
 
