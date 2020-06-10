@@ -47,7 +47,7 @@ static SemaphoreHandle_t ScreenLock = NULL;
 static SemaphoreHandle_t state_machine_signal = NULL;
 
 static QueueHandle_t next_state_queue = NULL;
-
+static QueueHandle_t reset_queue = NULL;
 
 typedef struct buttons_buffer {
     unsigned char buttons[SDL_NUM_SCANCODES];
@@ -265,14 +265,15 @@ void vPlay_screen(void *pvParameters)
      * Signals for play_dynamics.c;
      * Flag 0: move left; Flag 1: move right
      * Flag 2: shoot; Flag 3: move aliens
+     * Flag 4: reset Flag
      */
-    unsigned int Flags[4] = { 0 };
+    unsigned int Flags[5] = { 0 };
 
     TickType_t xLastWakeTime, prevWakeTime;
     xLastWakeTime = xTaskGetTickCount();
     prevWakeTime = xLastWakeTime;
 
-    vInit_playscreen();
+    int reset;
 
     while (1) {
         if (DrawSignal) {
@@ -306,6 +307,16 @@ void vPlay_screen(void *pvParameters)
                     }
                     xSemaphoreGive(buttons.lock);
                 }    
+
+                // receive reset signal 
+                // when signal == 1 -> Flag[5] = 1
+                
+                if (xQueueReceive(reset_queue, &reset, 0)) {
+                    if (reset) {
+                        Flags[4] = 1;
+                    }
+                }
+                
                 
                 xLastWakeTime = xTaskGetTickCount();
                 
@@ -314,7 +325,7 @@ void vPlay_screen(void *pvParameters)
                 vDraw_playscreen(Flags, xLastWakeTime - prevWakeTime);
                 
                 vDrawFPS();
-
+                
                 xSemaphoreGive(ScreenLock);
 
                 prevWakeTime = xLastWakeTime;
@@ -332,6 +343,7 @@ void vPlay_screen(void *pvParameters)
                 Flags[0] = 0;
                 Flags[1] = 0;
                 Flags[2] = 0;  
+                Flags[4] = 0;
             } 
         } 
     }
@@ -357,7 +369,6 @@ void vPauseScreen(void *pvParameters) {
                         xSemaphoreGive(buttons.lock);
                         xSemaphoreGive(state_machine_signal);
                         xQueueSend(next_state_queue, &next_state_mainmenu, 0);
-                        vInit_playscreen();
                     }
                     /* when SPACE is pressed send signal
                         to state machine to go to state 1
@@ -461,7 +472,9 @@ void vStateMachine(void *pvParameters) {
 
     int state = 0;
 
-    const int state_change_period = 500;
+    int reset = 1;
+
+    const int state_change_period = 750;
     TickType_t last_change = xTaskGetTickCount();
 
     while(1) {
@@ -482,8 +495,11 @@ void vStateMachine(void *pvParameters) {
                     vTaskSuspend(startscreen_task);
                     vTaskSuspend(pausescreen_task);
                     vTaskSuspend(cheatview_task);
-                    vTaskSuspend(hscoreview_task);
+                    vTaskSuspend(hscoreview_task); 
                     vTaskResume(playscreen_task);
+                    vInit_playscreen();
+                    // give signal to reset positions
+                    xQueueSend(reset_queue, &reset, 0);
                 }
                 if (state == 2) {
                     vTaskSuspend(playscreen_task);
@@ -565,6 +581,11 @@ int main(int argc, char *argv[])
     next_state_queue = xQueueCreate(1, sizeof(int));
     if (!next_state_queue) {
         PRINT_ERROR("Failed to create Next state queue");
+    }
+
+    reset_queue = xQueueCreate(1, sizeof(int));
+    if (!reset_queue) {
+        PRINT_ERROR("Failed to create reset queue");
     }
 
     // Task Creation ##################################################

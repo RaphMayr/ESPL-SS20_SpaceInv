@@ -32,7 +32,6 @@ typedef struct Screen_objects {
     unsigned int state;
     SemaphoreHandle_t lock;
 } Object;
-
 /**
  * @brief initializes playscreen
  * 
@@ -48,7 +47,7 @@ void vInit_playscreen();
  * @param ms indicates time gone since last Wake time
  * -> update positions
  */
-void vDraw_playscreen(unsigned int Flags[4], unsigned int ms);
+void vDraw_playscreen(unsigned int Flags[5], unsigned int ms);
 /**
  * @brief checks projectile collision with alien
  * 
@@ -104,4 +103,7 @@ Object vUpdate_alien(Object alien, unsigned int state,
  * @param alien from which the Lasershot shall originate
  */
 void vCreate_Lasershot(Object alien);
+
+Object vReset_alien(Object alien, int row, int col);
+
 #endif

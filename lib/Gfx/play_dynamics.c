@@ -28,34 +28,52 @@
 #define LEFT_CONSTRAINT_X 100
 #define RIGHT_CONSTRAINT_X 540
 
-#define ALIEN_COUNT 50
+#define DY_ALIEN 5
+#define DX_ALIEN 20
 
-#define JELLY_COUNT 10
+#define DY_PROJECTILE 300
 
 Object player = { 0 };
 Object projectile = { 0 };
 Object upper_wall = { 0 };
 
-Object jelly0 = { 0 };
-Object jelly1 = { 0 };
-Object jelly2 = { 0 };
-Object jelly3 = { 0 };
-Object jelly4 = { 0 };
-Object jelly5 = { 0 };
-Object jelly6 = { 0 };
-Object jelly7 = { 0 };
-Object jelly8 = { 0 };
-Object jelly9 = { 0 };
+Object aliens[5][10] = { 0 };
 
-Object crab = { 0 };
-Object fred = { 0 };
+Object vReset_alien(Object alien, int row, int col)
+{
+        alien.x_coord = 175 + col*30;
+        alien.y_coord = CENTER_Y - 175 + row *40;
 
-Object aliens[ALIEN_COUNT];
+        alien.f_x = alien.x_coord;
+        alien.f_y = alien.y_coord;
+
+        if (row == 0) {
+            alien.type = 'J';
+        }
+        if (row == 1 || row == 2) {
+            alien.type = 'C';
+        }
+        if (row == 3 || row == 4) {
+            alien.type = 'F';
+        }
+
+        alien.state = 1;
+
+    return alien;
+}
 
 void vInit_playscreen()
 {
+    for (int row=0; row < 5; row++){
+        
+        for (int col=0; col < 10; col++) {
+        
+            aliens[row][col].lock = xSemaphoreCreateMutex();
+        }
+    }
+
     upper_wall.lock = xSemaphoreCreateMutex();
-    if (xSemaphoreTake(upper_wall.lock, 0)) {
+    if (xSemaphoreTake(upper_wall.lock, portMAX_DELAY)) {
 
         upper_wall.x_coord = 100;
         upper_wall.y_coord = 0;
@@ -70,7 +88,7 @@ void vInit_playscreen()
         xSemaphoreGive(upper_wall.lock);
     }
     player.lock = xSemaphoreCreateMutex();
-    if (xSemaphoreTake(player.lock, 0)) {
+    if (xSemaphoreTake(player.lock, portMAX_DELAY)) {
 
         player.x_coord = CENTER_X - 6*px;
         player.y_coord = CENTER_Y + 175;
@@ -82,71 +100,10 @@ void vInit_playscreen()
 
         xSemaphoreGive(player.lock);
     }
-    aliens[0] = jelly0;
-    aliens[1] = jelly1;
-    aliens[2] = jelly2;
-    aliens[3] = jelly3;
-    aliens[4] = jelly4;
-    aliens[5] = jelly5;
-    aliens[6] = jelly6;
-    aliens[7] = jelly7;
-    aliens[8] = jelly8;
-    aliens[9] = jelly9;
-
-    for (int i=0; i<10; i++) {
-        aliens[i].lock = xSemaphoreCreateMutex();
-        if (xSemaphoreTake(aliens[i].lock, 0)) {
-
-            aliens[i].x_coord = 200 + i*30;
-            aliens[i].y_coord = CENTER_Y - 100;
-
-            aliens[i].f_x = aliens[i].x_coord;
-            aliens[i].f_y = aliens[i].y_coord;
-
-            aliens[i].type = 'J';
-
-            aliens[i].state = 1;
-
-            xSemaphoreGive(aliens[i].lock);
-        }
-    }
-    crab.lock = xSemaphoreCreateMutex();
-    if (xSemaphoreTake(crab.lock, 0)) {
-        
-        crab.x_coord = CENTER_X + 50;
-        crab.y_coord = CENTER_Y - 50;
-
-        crab.f_x = crab.x_coord;
-        crab.f_y = crab.y_coord;
-
-        crab.type = 'C';
-
-        crab.state = 1;
-
-        aliens[10] = crab;
-
-        xSemaphoreGive(crab.lock);
-    }
-    fred.lock = xSemaphoreCreateMutex();
-    if (xSemaphoreTake(fred.lock, 0)) {
-        
-        fred.x_coord = CENTER_X - 50;
-        fred.y_coord = CENTER_Y;
-
-        fred.f_x = fred.x_coord;
-        fred.f_y = fred.y_coord;
-
-        fred.type = 'F';
-
-        fred.state = 1;
-
-        aliens[11] = fred;
-
-        xSemaphoreGive(fred.lock);
-    }
 }
 
-void vDraw_playscreen(unsigned int Flags[4], unsigned int ms)
+
+void vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
 {
     Object alien;
     vDrawPlayScreen();
@@ -158,40 +115,52 @@ void vDraw_playscreen(unsigned int Flags[4], unsigned int ms)
 
     vUpdate_player(Flags[0], Flags[1], ms);
     vDrawPlayer(player.x_coord, player.y_coord);
-
+    
     if (projectile.state) {     // as long as no collisions occur
         vUpdate_projectile(ms);
         vDrawProjectile(projectile.x_coord, projectile.y_coord);
     }
 
-    for (int ID=0; ID < 10; ID++){
+    for (int row=0; row < 5; row++){
         
-        alien = aliens[ID];
-        if (alien.state) {
-            alien = vUpdate_alien(alien, Flags[3], ms);
-            switch (alien.type) {
-                case 'J': 
-                    vDraw_jellyAlien(alien.x_coord,
-                                     alien.y_coord, Flags[3]);
-                    break;
-                case 'C':
-                    vDraw_crabAlien(alien.x_coord, 
-                                    alien.y_coord, Flags[3]);
-                    break;
-                case 'F':
-                    vDraw_fredAlien(alien.x_coord,
-                                    alien.y_coord, Flags[3]);
-                    break;
+        for (int col=0; col < 10; col++) {
+
+            if (xSemaphoreTake(aliens[row][col].lock, portMAX_DELAY)) {
+                
+                alien = aliens[row][col];
+                
+                if (Flags[4]) {         // reset signal 
+                    alien = vReset_alien(alien, row, col);
+                }
+                if (Flags[4] == 0) {
+                    alien = vUpdate_alien(alien, Flags[3], ms);
+                }
+                if (alien.state) {
+                    switch (alien.type) {
+                        case 'J': 
+                            vDraw_jellyAlien(alien.x_coord,
+                                            alien.y_coord, Flags[3]);
+                            break;
+                        case 'C':
+                            vDraw_crabAlien(alien.x_coord, 
+                                            alien.y_coord, Flags[3]);
+                            break;
+                        case 'F':
+                            vDraw_fredAlien(alien.x_coord,
+                                            alien.y_coord, Flags[3]);
+                            break;
+                    } 
+                }
+                if (vCheckCollision(alien)) {
+                    vDelete_projectile();
+                    alien = vDelete_alien(alien);
+                }
+                aliens[row][col] = alien;
+                xSemaphoreGive(aliens[row][col].lock);
             }
         }
-        if (vCheckCollision(alien)) {
-            alien = vDelete_alien(alien);
-            vDelete_projectile();
-        }
-        aliens[ID] = alien;
 
     }
-    
     if (vCheckCollision(upper_wall)) {
         vDelete_projectile();
     }
@@ -272,19 +241,15 @@ void vDelete_projectile() {
 
 Object vDelete_alien(Object alien) {
 
-    if (xSemaphoreTake(alien.lock, 0)) {
-        alien.state = 0;
+    alien.state = 0;
 
-        alien.f_x = 0;
-        alien.f_y = 0;
+    alien.f_x = 0;
+    alien.f_y = 0;
 
-        alien.x_coord = alien.f_x;
-        alien.y_coord = alien.f_y;
+    alien.x_coord = alien.f_x;
+    alien.y_coord = alien.f_y;
 
-        printf("deleted alien. state: %i\n", alien.state);
-
-        xSemaphoreGive(alien.lock);
-    }
+    printf("deleted alien. state: %i\n", alien.state);
 
     return alien;
 }
@@ -316,7 +281,7 @@ void vUpdate_player(unsigned int move_left,
 
 void vUpdate_projectile(unsigned int ms) 
 {
-    unsigned int dy = 200;
+    unsigned int dy = DY_PROJECTILE;
     float update_interval = ms / 1000.0;
 
     if (xSemaphoreTake(projectile.lock, 0)) {
@@ -331,26 +296,23 @@ void vUpdate_projectile(unsigned int ms)
 Object vUpdate_alien(Object alien, unsigned int state,
                         unsigned int ms)
 {
-    unsigned int dy = 10;
-    unsigned int dx = 20;
+    unsigned int dy = DY_ALIEN;
+    unsigned int dx = DX_ALIEN;
     float update_interval = ms / 1000.0;
 
-    if (xSemaphoreTake(alien.lock, 0)) {
-        
-        alien.f_y += dy * update_interval;
-        alien.y_coord = round(alien.f_y);
-        // move left
-        if (state == 0) {
-            alien.f_x -= dx*update_interval;
-            alien.x_coord = round(alien.f_x);
-        }
-        // move right
-        if (state == 1) {
-            alien.f_x += dx*update_interval;
-            alien.x_coord = round(alien.f_x);
-        }
-        xSemaphoreGive(alien.lock);
+    alien.f_y += dy * update_interval;
+    alien.y_coord = round(alien.f_y);
+    // move left
+    if (state == 0) {
+        alien.f_x -= dx*update_interval;
+        alien.x_coord = round(alien.f_x);
+    }
+    // move right
+    if (state == 1) {
+        alien.f_x += dx*update_interval;
+        alien.x_coord = round(alien.f_x);
     }
 
     return alien;
 }
+

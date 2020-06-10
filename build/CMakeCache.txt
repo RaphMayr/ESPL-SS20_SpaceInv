@@ -213,6 +213,9 @@ SDL2_TTF_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libSDL2_ttf.so
 //Trace function calls using instrument-functions
 TRACE_FUNCTIONS:BOOL=OFF
 
+//No help, variable specified on the command line.
+USE_IDE:UNINITIALIZED=vscode
+
 
 ########################
 # INTERNAL cache entries

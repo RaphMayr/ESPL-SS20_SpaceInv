@@ -18,6 +18,10 @@ set(CMAKE_MAKEFILE_DEPENDS
   "../cmake/FindSDL2_ttf.cmake"
   "../cmake/init_local_projects.cmake"
   "../cmake/tests.cmake"
+  "../config/vscode/c_cpp_properties.local.json.in"
+  "../config/vscode/extensions.local.json.in"
+  "../config/vscode/launch.local.json.in"
+  "../config/vscode/tasks.local.json.in"
   "/usr/share/cmake-3.5/Modules/CMakeCInformation.cmake"
   "/usr/share/cmake-3.5/Modules/CMakeCXXInformation.cmake"
   "/usr/share/cmake-3.5/Modules/CMakeCommonLanguageInclude.cmake"
@@ -52,6 +56,10 @@ set(CMAKE_MAKEFILE_OUTPUTS
 
 # Byproducts of CMake generate step:
 set(CMAKE_MAKEFILE_PRODUCTS
+  "../.vscode/launch.json"
+  "../.vscode/extensions.json"
+  "../.vscode/tasks.json"
+  "../.vscode/c_cpp_properties.json"
   "CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 

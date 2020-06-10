@@ -1,16 +1,17 @@
 {
     "configurations": [
         {
-            "name": "Linux",
+            "name": "FreeRTOS Emulator",
+            "intelliSenseMode": "clang-x64",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "./lib/FreeRTOS_Kernel/**",
+                "./lib/AsyncIO/**",
+                "./lib/Gfx/**",
+                "./lib/tracer/**"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "gnu11",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "clang-x64",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "compileCommands": "${workspaceFolder}/compile_commands.json"
         }
     ],
     "version": 4
