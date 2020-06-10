@@ -283,3 +283,29 @@ void vDrawHScoreScreen()
                 CENTER_Y,
                 Green);
 }
+
+void vDrawGameOver()
+{
+    // coordinates of Gamescreen
+    signed short x_hscorescreen = 100;
+    signed short y_hscorescreen = 0;
+    signed short w_hscorescreen = 440;
+    signed short h_hscorescreen = 480;
+
+    static char text[50];
+    static int text_width = 0;
+
+    // drawing Gamescreen
+    tumDrawClear(White);
+    tumDrawFilledBox(x_hscorescreen, y_hscorescreen,
+                    w_hscorescreen, h_hscorescreen,
+                    Black);
+
+    sprintf(text, "GAME OVER");
+    tumGetTextSize((char *) text,
+                    &text_width, NULL);
+    tumDrawText(text,
+                CENTER_X - text_width / 2,
+                CENTER_Y,
+                Green);
+}

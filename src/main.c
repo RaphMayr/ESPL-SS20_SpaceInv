@@ -23,6 +23,7 @@
 
 #include "play_graphics.h"
 #include "menu_graphics.h"
+#include "play_dynamics.h"
 
 #define mainGENERIC_PRIORITY (tskIDLE_PRIORITY)
 #define mainGENERIC_STACK_SIZE ((unsigned short)2560)
@@ -46,7 +47,7 @@ static SemaphoreHandle_t ScreenLock = NULL;
 static SemaphoreHandle_t state_machine_signal = NULL;
 
 static QueueHandle_t next_state_queue = NULL;
-
+static QueueHandle_t reset_queue = NULL;
 
 typedef struct buttons_buffer {
     unsigned char buttons[SDL_NUM_SCANCODES];
@@ -187,10 +188,14 @@ void vStart_screen(void *pvParameters) {
                 /* when SPACE is pressed send signal 
                     to state machine to go to state 1
                     -> enter game 
-                */ 
-                if(buttons.buttons[KEYCODE(SPACE)]) {
-                    xSemaphoreGive(state_machine_signal);
-                    xQueueSend(next_state_queue, &next_state_play, 0);
+                */
+                if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) { 
+                    if(buttons.buttons[KEYCODE(SPACE)]) {
+                        xSemaphoreGive(buttons.lock);
+                        xSemaphoreGive(state_machine_signal);
+                        xQueueSend(next_state_queue, &next_state_play, 0);
+                    }
+                    xSemaphoreGive(buttons.lock);
                 }
                 // check button inputs
                 // get mouse coordinates 
@@ -252,75 +257,106 @@ void vStart_screen(void *pvParameters) {
 
 void vPlay_screen(void *pvParameters)
 {
-    signed short x_mothership = CENTER_X - 6*px;
-    signed short y_mothership = CENTER_Y + 175;
-
-    signed short x_bunker0 = CENTER_X - 150 - 12*px;
-    signed short y_bunker0 = CENTER_Y + 100;
-
-    signed short x_bunker1 = CENTER_X - 50 - 12*px;
-    signed short y_bunker1 = CENTER_Y + 100;
-
-    signed short x_bunker2 = CENTER_X + 50 - 12*px;
-    signed short y_bunker2 = CENTER_Y + 100;
-
-    signed short x_bunker3 = CENTER_X + 150 - 12*px;
-    signed short y_bunker3 = CENTER_Y + 100;
-
-    signed short x_aliens = CENTER_X - 130;
-    signed short y_aliens = CENTER_Y - 120;
-
-    signed short state = 1;
+    int next_state_pause = 2;
+    int next_state_mainmenu = 0;
 
     int ticks = 0;
 
-    int next_state_pause = 2;
+    unsigned int game_over = 0;
+
+    /**
+     * Signals for play_dynamics.c;
+     * Flag 0: move left; Flag 1: move right
+     * Flag 2: shoot; Flag 3: move aliens
+     * Flag 4: reset Flag
+     */
+    unsigned int Flags[5] = { 0 };
+
+    TickType_t xLastWakeTime, prevWakeTime;
+    xLastWakeTime = xTaskGetTickCount();
+    prevWakeTime = xLastWakeTime;
+
+    int reset;
 
     while (1) {
         if (DrawSignal) {
             if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
                 pdTRUE) {
+                    
                 xGetButtonInput(); // Update global input
                 // currently in state 1
                 /* when escape is pressed send signal 
                     to state machine to go to state 2
                     -> PAUSE screen
                 */ 
-                if(buttons.buttons[KEYCODE(ESCAPE)]) {
-                    xSemaphoreGive(state_machine_signal);
-                    xQueueSend(next_state_queue, &next_state_pause, 0);
+                if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
+
+                    if (buttons.buttons[KEYCODE(ESCAPE)]) {
+                        xSemaphoreGive(buttons.lock);
+                        xSemaphoreGive(state_machine_signal);
+                        xQueueSend(next_state_queue, &next_state_pause, 0);
+                    }
+
+                    if (buttons.buttons[KEYCODE(A)]) {
+                        Flags[0] = 1;
+                    }
+
+                    if (buttons.buttons[KEYCODE(D)]) {
+                        Flags[1] = 1;
+                    }
+
+                    if (buttons.buttons[KEYCODE(W)]) {
+                        Flags[2] = 1;
+                    }
+                    xSemaphoreGive(buttons.lock);
+                }    
+
+                // receive reset signal 
+                // when signal == 1 -> Flag[5] = 1
+                
+                if (xQueueReceive(reset_queue, &reset, 0)) {
+                    if (reset) {
+                        Flags[4] = 1;
+                    }
                 }
+                
+                
+                xLastWakeTime = xTaskGetTickCount();
                 
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
-                vDrawPlayScreen();
-
-                vDrawPlayer(x_mothership, y_mothership);
-
-                vDrawBunker(x_bunker0, y_bunker0);
-                vDrawBunker(x_bunker1, y_bunker1);
-                vDrawBunker(x_bunker2, y_bunker2);
-                vDrawBunker(x_bunker3, y_bunker3);
-
-                vDrawAliens(x_aliens, y_aliens, state);
-
+                game_over = vDraw_playscreen(Flags, 
+                                xLastWakeTime - prevWakeTime);
+                
                 vDrawFPS();
-
+                
                 xSemaphoreGive(ScreenLock);
-                if (ticks == 50)    {
-                    
-                    if (state == 1)   {
-                        state = 0;
-                    }   
-                    else {
-                        state = 1;
-                    }
+
+                prevWakeTime = xLastWakeTime;
+
+                if (game_over) {
+                    vTaskDelay(2000);
+                    xSemaphoreGive(state_machine_signal);
+                    xQueueSend(next_state_queue, 
+                                &next_state_mainmenu, 0);
+                }
+
+                if (ticks == 100) {
+                    Flags[3] = 1;
+                }
+                if (ticks == 200) {
+                    Flags[3] = 0;
                     ticks = 0;
                 }
+
                 ticks++;
+
+                Flags[0] = 0;
+                Flags[1] = 0;
+                Flags[2] = 0;  
+                Flags[4] = 0;
             } 
         } 
-        
     }
 }
 
@@ -338,17 +374,23 @@ void vPauseScreen(void *pvParameters) {
                     to state machine to go to state 0
                     -> start screen
                 */ 
-                if(buttons.buttons[KEYCODE(ESCAPE)]) {
-                    xSemaphoreGive(state_machine_signal);
-                    xQueueSend(next_state_queue, &next_state_mainmenu, 0);
-                }
-                /* when SPACE is pressed send signal
-                    to state machine to go to state 1
-                    -> resume playing
-                */
-                if(buttons.buttons[KEYCODE(SPACE)]) {
-                    xSemaphoreGive(state_machine_signal);
-                    xQueueSend(next_state_queue, &next_state_play, 0);
+                if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
+
+                    if(buttons.buttons[KEYCODE(ESCAPE)]) {
+                        xSemaphoreGive(buttons.lock);
+                        xSemaphoreGive(state_machine_signal);
+                        xQueueSend(next_state_queue, &next_state_mainmenu, 0);
+                    }
+                    /* when SPACE is pressed send signal
+                        to state machine to go to state 1
+                        -> resume playing
+                    */
+                    if(buttons.buttons[KEYCODE(SPACE)]) {
+                        xSemaphoreGive(buttons.lock);
+                        xSemaphoreGive(state_machine_signal);
+                        xQueueSend(next_state_queue, &next_state_play, 0);
+                    }
+                    xSemaphoreGive(buttons.lock);
                 }
 
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
@@ -376,9 +418,14 @@ void vCheatView(void *pvParameters) {
                 to state machine to go to state 0
                 -> start screen
             */ 
-            if(buttons.buttons[KEYCODE(ESCAPE)]) {
-                xSemaphoreGive(state_machine_signal);
-                xQueueSend(next_state_queue, &next_state_mainmenu, 0);
+            if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
+
+                if(buttons.buttons[KEYCODE(ESCAPE)]) {
+                    xSemaphoreGive(buttons.lock);
+                    xSemaphoreGive(state_machine_signal);
+                    xQueueSend(next_state_queue, &next_state_mainmenu, 0);
+                }
+                xSemaphoreGive(buttons.lock);
             }
         
             xSemaphoreTake(ScreenLock, portMAX_DELAY);
@@ -405,9 +452,14 @@ void vHScoreView(void *pvParameters) {
                 to state machine to go to state 0
                 -> start screen
             */ 
-            if(buttons.buttons[KEYCODE(ESCAPE)]) {
-                xSemaphoreGive(state_machine_signal);
-                xQueueSend(next_state_queue, &next_state_mainmenu, 0);
+            if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
+
+                if(buttons.buttons[KEYCODE(ESCAPE)]) {
+                    xSemaphoreGive(buttons.lock);
+                    xSemaphoreGive(state_machine_signal);
+                    xQueueSend(next_state_queue, &next_state_mainmenu, 0);
+                }
+                xSemaphoreGive(buttons.lock);
             }
         
             xSemaphoreTake(ScreenLock, portMAX_DELAY);
@@ -431,6 +483,8 @@ void vStateMachine(void *pvParameters) {
 
     int state = 0;
 
+    int reset = 1;
+
     const int state_change_period = 750;
     TickType_t last_change = xTaskGetTickCount();
 
@@ -452,8 +506,11 @@ void vStateMachine(void *pvParameters) {
                     vTaskSuspend(startscreen_task);
                     vTaskSuspend(pausescreen_task);
                     vTaskSuspend(cheatview_task);
-                    vTaskSuspend(hscoreview_task);
+                    vTaskSuspend(hscoreview_task); 
                     vTaskResume(playscreen_task);
+                    vInit_playscreen();
+                    // give signal to reset positions
+                    xQueueSend(reset_queue, &reset, 0);
                 }
                 if (state == 2) {
                     vTaskSuspend(playscreen_task);
@@ -483,7 +540,7 @@ void vStateMachine(void *pvParameters) {
 }
 
 
-// main function ################################
+// main function #########################################################
 
 #define PRINT_TASK_ERROR(task) PRINT_ERROR("Failed to print task ##task");
 
@@ -535,6 +592,11 @@ int main(int argc, char *argv[])
     next_state_queue = xQueueCreate(1, sizeof(int));
     if (!next_state_queue) {
         PRINT_ERROR("Failed to create Next state queue");
+    }
+
+    reset_queue = xQueueCreate(1, sizeof(int));
+    if (!reset_queue) {
+        PRINT_ERROR("Failed to create reset queue");
     }
 
     // Task Creation ##################################################

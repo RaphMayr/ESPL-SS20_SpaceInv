@@ -39,5 +39,9 @@ void vDrawCheatScreen();
  * @brief draws High score screen
  */
 void vDrawHScoreScreen();
+/**
+ * @brief draws Game Over Font
+ */ 
+void vDrawGameOver();
 
 #endif
