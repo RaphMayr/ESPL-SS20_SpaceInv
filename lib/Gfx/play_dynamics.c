@@ -30,7 +30,7 @@
 #define RIGHT_CONSTRAINT_X 540
 
 #define DX_ALIEN 20     // initial x-velocity of aliens
-#define DY_ALIEN 30     // initial y-velocity of aliens
+#define DY_ALIEN 5    // initial y-velocity of aliens
 
 #define DY_PROJECTILE 200   // y-velocity of projectile
 

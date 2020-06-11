@@ -290,6 +290,7 @@ void vPlay_screen(void *pvParameters)
             if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
                 pdTRUE) {
                 xLastWakeTime = xTaskGetTickCount();
+                xQueueReceive(reset_queue, &reset, 0);
                 if (reset) {
                     prevWakeTime = xLastWakeTime;
                     reset = 0;
@@ -345,8 +346,6 @@ void vPlay_screen(void *pvParameters)
 
                 if (game_over) {
                     vTaskDelay(2000);
-                    reset = 1;
-                    printf("resetting...\n");
                     xSemaphoreGive(state_machine_signal);
                     xQueueSend(next_state_queue, 
                                 &next_state_mainmenu, 0);
@@ -496,6 +495,8 @@ void vStateMachine(void *pvParameters) {
 
     int state = 0;
 
+    int reset = 1;
+
     const int state_change_period = 750;
     TickType_t last_change = xTaskGetTickCount();
 
@@ -520,6 +521,7 @@ void vStateMachine(void *pvParameters) {
                     vTaskSuspend(hscoreview_task); 
                     vTaskResume(playscreen_task);
                     vInit_playscreen();
+                    xQueueSend(reset_queue, &reset, 0);
                     
                 }
                 if (state == 2) {
