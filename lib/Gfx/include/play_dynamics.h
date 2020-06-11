@@ -28,10 +28,41 @@ typedef struct Screen_objects {
     float f_y;
     signed short x_coord;
     signed short y_coord;
-    char type;              
+    char type;        
     unsigned int state;
     SemaphoreHandle_t lock;
 } Object;
+/**
+ * @brief struct to represent bunkers
+ * 
+ */ 
+typedef struct bunker_objects {
+    signed short x_coord;
+    signed short y_coord;
+
+    signed short low_coll_x;
+    signed short low_coll_y;
+
+    signed short up_coll_x;
+    signed short up_coll_y;
+
+    SemaphoreHandle_t lock;
+} Bunker;
+/**
+ * @brief struct to represent a element's velocity
+ * 
+ * @param dx x-velocity
+ * @param dy y-velocity
+ * 
+ * @param lock to gurantee thread-safety
+ */
+typedef struct velocities {
+    unsigned int dx;
+    unsigned int dy;
+    unsigned int move_right;
+
+    SemaphoreHandle_t lock;
+} Velocity;
 /**
  * @brief initializes playscreen
  * 
@@ -111,5 +142,10 @@ Object vDelete_alien();
  * @param alien to be checked
  */
 int vCheck_bottomCollision(Object alien);
+/**
+ * @brief updates bunker texture according to impact
+ * 
+ */
+void vUpdate_bunker(unsigned int row);
 
 #endif

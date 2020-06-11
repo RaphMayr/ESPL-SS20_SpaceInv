@@ -29,10 +29,10 @@
 #define LEFT_CONSTRAINT_X 100
 #define RIGHT_CONSTRAINT_X 540
 
-#define DY_ALIEN 30
-#define DX_ALIEN 20
+#define DX_ALIEN 20     // initial x-velocity of aliens
+#define DY_ALIEN 5     // initial y-velocity of aliens
 
-#define DY_PROJECTILE 300
+#define DY_PROJECTILE 200   // y-velocity of projectile
 
 Object player = { 0 };
 
@@ -42,9 +42,11 @@ Object lasershot = { 0 };
 Object upper_wall = { 0 };
 Object lower_wall = { 0 };
 
-Object bunkers[4] = { 0 };
+Bunker bunkers[4] = { 0 };
 
 Object aliens[5][10] = { 0 };
+
+Velocity alien_velo = { 0 };
 
 void vInit_playscreen()
 {
@@ -55,6 +57,16 @@ void vInit_playscreen()
         
             aliens[row][col].lock = xSemaphoreCreateMutex();
         }
+    }
+    alien_velo.lock = xSemaphoreCreateMutex();
+    // set alien velocities
+    if (xSemaphoreTake(alien_velo.lock, portMAX_DELAY)) {
+        alien_velo.dx = DX_ALIEN;
+        alien_velo.dy = DY_ALIEN;
+
+        alien_velo.move_right = 1;
+
+        xSemaphoreGive(alien_velo.lock);
     }
 
     upper_wall.lock = xSemaphoreCreateMutex();
@@ -76,7 +88,7 @@ void vInit_playscreen()
     if (xSemaphoreTake(lower_wall.lock, portMAX_DELAY)) {
 
         lower_wall.x_coord = 100;
-        lower_wall.y_coord = CENTER_Y + 175;
+        lower_wall.y_coord = CENTER_Y + 160;
 
         lower_wall.f_x = lower_wall.x_coord;
         lower_wall.f_y = lower_wall.y_coord;
@@ -100,6 +112,19 @@ void vInit_playscreen()
 
         xSemaphoreGive(player.lock);
     }
+    for (int row=0; row<4; row++) {
+        bunkers[row].lock = xSemaphoreCreateMutex();
+        if (xSemaphoreTake(bunkers[row].lock, portMAX_DELAY)) {
+
+            bunkers[row].x_coord = 140 + 100*row;
+            bunkers[row].y_coord = CENTER_Y + 130;
+
+            bunkers[row].low_coll_x = bunkers[row].x_coord;
+            bunkers[row].low_coll_y = bunkers[row].y_coord + 13*px;
+
+            xSemaphoreGive(bunkers[row].lock);
+        }
+    }
 }
 
 int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
@@ -120,8 +145,9 @@ int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
         vUpdate_projectile(ms);
         vDrawProjectile(projectile.x_coord, projectile.y_coord);
     }
+    
 
-    for (int row=0; row < 5; row++){
+    for (int row=0; row < 5; row++) {
         
         for (int col=0; col < 10; col++) {
 
@@ -159,6 +185,14 @@ int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
                 if (vCheck_ProjCollision(alien)) {
                     vDelete_projectile();
                     alien = vDelete_alien(alien);
+                    // increase speed of all aliens
+                    if (xSemaphoreTake(alien_velo.lock, 0)) {
+                        
+                        printf("increasing x_velocity\n");
+                        alien_velo.dx += 5;
+
+                        xSemaphoreGive(alien_velo.lock);
+                    }
                 }
                 /**
                  * check bottom wall collision
@@ -166,18 +200,38 @@ int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
                  */
                 if (vCheck_bottomCollision(alien)) {
                     vDrawGameOver();
+                    
                     return 1;
                 }
                 aliens[row][col] = alien;
                 xSemaphoreGive(aliens[row][col].lock);
             }
         }
-
+    }
+    for (int row=0; row < 4; row++) {
+        vDrawBunker(bunkers[row].x_coord, bunkers[row].y_coord);
+        vUpdate_bunker(row); 
     }
     if (vCheck_ProjCollision(upper_wall)) {
         vDelete_projectile();
     }
     return 0;
+}
+
+void vUpdate_bunker(unsigned int row)
+{
+    unsigned int width = 24*px;
+    // impact line proj: proj_x + px, proj_y
+
+    if (projectile.y_coord <= bunkers[row].low_coll_y &&
+        projectile.y_coord >= bunkers[row].low_coll_y) {
+            for (int i=0; i < width; i++) {
+                if ((bunkers[row].low_coll_x + i) 
+                        == projectile.x_coord) {
+                    printf("collision on bunker %i\n", row);
+                }
+            }
+    }
 }
 
 
@@ -203,7 +257,7 @@ int vCheck_ProjCollision(Object alien)
             hit_wall_y = alien.y_coord + 5*px;
             width = 12*px;
             break;
-        case 'U':
+        case 'U':   // upper wall collision
             hit_wall_x = alien.x_coord;
             hit_wall_y = alien.y_coord + 5*px;
             width = 440;
@@ -296,19 +350,26 @@ void vDelete_projectile() {
 Object vUpdate_alien(Object alien, unsigned int state,
                         unsigned int ms)
 {
-    unsigned int dy = DY_ALIEN;
-    unsigned int dx = DX_ALIEN;
+    unsigned int dy = alien_velo.dy;
+    unsigned int dx = alien_velo.dx;
     float update_interval = ms / 1000.0;
     
     alien.f_y += dy * update_interval;
     alien.y_coord = round(alien.f_y);
+
+    if (alien.x_coord >= 480 && alien.state == 1) {
+        alien_velo.move_right = 0;
+    }
+    if (alien.x_coord <= 150 && alien.state == 1) {
+        alien_velo.move_right = 1;
+    }
     // move left
-    if (state == 0) {
+    if (!alien_velo.move_right) {
         alien.f_x -= dx*update_interval;
         alien.x_coord = round(alien.f_x);
     }
     // move right
-    if (state == 1) {
+    if (alien_velo.move_right) {
         alien.f_x += dx*update_interval;
         alien.x_coord = round(alien.f_x);
     }
@@ -318,7 +379,7 @@ Object vUpdate_alien(Object alien, unsigned int state,
 
 Object vReset_alien(Object alien, int row, int col)
 {
-        alien.x_coord = 175 + col*30;
+        alien.x_coord = 150 + col*30;
         alien.y_coord = CENTER_Y - 175 + row *40;
 
         alien.f_x = alien.x_coord;
@@ -362,3 +423,4 @@ int vCheck_bottomCollision(Object alien) {
     }
     return 0;
 }
+

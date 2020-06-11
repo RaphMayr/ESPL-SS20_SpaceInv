@@ -214,7 +214,8 @@ void vStart_screen(void *pvParameters) {
                         buttonState_Mouse = reading_Mouse;
                          
                         if (buttonState_Mouse == 1){
-                                button_pressed = vCheckMainMenuButtonInput(mouse_X, 
+                                button_pressed = vCheckMainMenuButtonInput(
+                                                            mouse_X, 
                                                             mouse_Y);
                             if (button_pressed == 1) {
                                 xSemaphoreGive(state_machine_signal);
@@ -264,6 +265,13 @@ void vPlay_screen(void *pvParameters)
 
     unsigned int game_over = 0;
 
+    int buttonState_W = 0;
+    int lastState_W = 0;
+    clock_t lastDebounceTime_W;
+
+    clock_t timestamp;
+    double debounce_delay = 0.025;
+
     /**
      * Signals for play_dynamics.c;
      * Flag 0: move left; Flag 1: move right
@@ -296,7 +304,6 @@ void vPlay_screen(void *pvParameters)
                         xSemaphoreGive(state_machine_signal);
                         xQueueSend(next_state_queue, &next_state_pause, 0);
                     }
-
                     if (buttons.buttons[KEYCODE(A)]) {
                         Flags[0] = 1;
                     }
@@ -304,12 +311,25 @@ void vPlay_screen(void *pvParameters)
                     if (buttons.buttons[KEYCODE(D)]) {
                         Flags[1] = 1;
                     }
-
-                    if (buttons.buttons[KEYCODE(W)]) {
-                        Flags[2] = 1;
+                    int reading_W = buttons.buttons[KEYCODE(W)];
+                    if (reading_W != lastState_W) {
+                        lastDebounceTime_W = clock();
                     }
+                    timestamp = clock();
+                    if ((((double) (timestamp - lastDebounceTime_W)
+                            )/ CLOCKS_PER_SEC) > debounce_delay) {
+                        if (reading_W != buttonState_W) {
+                            buttonState_W = reading_W;
+                            if (buttonState_W) {
+                                Flags[2] = 1;
+                            }
+                        }
+                    } 
+                    lastState_W = reading_W;
+
                     xSemaphoreGive(buttons.lock);
-                }    
+                }   
+                
 
                 // receive reset signal 
                 // when signal == 1 -> Flag[5] = 1
