@@ -321,9 +321,57 @@ CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Ball.c.o.provides: CMakeFiles/FreeR
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Ball.c.o.provides.build: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Ball.c.o
 
 
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o: CMakeFiles/FreeRTOS_Emulator.dir/flags.make
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o: ../lib/Gfx/play_dynamics.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o"
+	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o   -c /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/play_dynamics.c
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.i"
+	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/play_dynamics.c > CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.i
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.s"
+	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/play_dynamics.c -o CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.s
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o.requires:
+
+.PHONY : CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o.requires
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o.provides: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o.requires
+	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o.provides.build
+.PHONY : CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o.provides
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o.provides.build: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o
+
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: CMakeFiles/FreeRTOS_Emulator.dir/flags.make
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o: ../lib/Gfx/play_graphics.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o"
+	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o   -c /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/play_graphics.c
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.i"
+	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/play_graphics.c > CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.i
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.s"
+	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/play_graphics.c -o CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.s
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o.requires:
+
+.PHONY : CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o.requires
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o.provides: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o.requires
+	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o.provides.build
+.PHONY : CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o.provides
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o.provides.build: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o
+
+
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o: CMakeFiles/FreeRTOS_Emulator.dir/flags.make
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o: ../lib/Gfx/TUM_Utils.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o"
 	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o   -c /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Utils.c
 
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.i: cmake_force
@@ -347,7 +395,7 @@ CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o.provides.build: CMakeFile
 
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o: CMakeFiles/FreeRTOS_Emulator.dir/flags.make
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o: ../lib/Gfx/TUM_Sound.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o"
 	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o   -c /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Sound.c
 
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.i: cmake_force
@@ -371,7 +419,7 @@ CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o.provides.build: CMakeFile
 
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.o: CMakeFiles/FreeRTOS_Emulator.dir/flags.make
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.o: ../lib/Gfx/TUM_Event.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.o"
 	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.o   -c /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/TUM_Event.c
 
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.i: cmake_force
@@ -393,9 +441,33 @@ CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.o.provides: CMakeFiles/Free
 CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.o.provides.build: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.o
 
 
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: CMakeFiles/FreeRTOS_Emulator.dir/flags.make
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o: ../lib/Gfx/menu_graphics.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o"
+	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o   -c /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/menu_graphics.c
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.i"
+	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/menu_graphics.c > CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.i
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.s"
+	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rtos-sim/ESPL-SS20_SpaceInv/lib/Gfx/menu_graphics.c -o CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.s
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o.requires:
+
+.PHONY : CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o.requires
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o.provides: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o.requires
+	$(MAKE) -f CMakeFiles/FreeRTOS_Emulator.dir/build.make CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o.provides.build
+.PHONY : CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o.provides
+
+CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o.provides.build: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o
+
+
 CMakeFiles/FreeRTOS_Emulator.dir/lib/AsyncIO/AsyncIO.c.o: CMakeFiles/FreeRTOS_Emulator.dir/flags.make
 CMakeFiles/FreeRTOS_Emulator.dir/lib/AsyncIO/AsyncIO.c.o: ../lib/AsyncIO/AsyncIO.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/FreeRTOS_Emulator.dir/lib/AsyncIO/AsyncIO.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building C object CMakeFiles/FreeRTOS_Emulator.dir/lib/AsyncIO/AsyncIO.c.o"
 	/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/FreeRTOS_Emulator.dir/lib/AsyncIO/AsyncIO.c.o   -c /home/rtos-sim/ESPL-SS20_SpaceInv/lib/AsyncIO/AsyncIO.c
 
 CMakeFiles/FreeRTOS_Emulator.dir/lib/AsyncIO/AsyncIO.c.i: cmake_force
@@ -430,9 +502,12 @@ FreeRTOS_Emulator_OBJECTS = \
 "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Draw.c.o" \
 "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Font.c.o" \
 "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Ball.c.o" \
+"CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o" \
+"CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o" \
 "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o" \
 "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o" \
 "CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.o" \
+"CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o" \
 "CMakeFiles/FreeRTOS_Emulator.dir/lib/AsyncIO/AsyncIO.c.o"
 
 # External object files for target FreeRTOS_Emulator
@@ -449,9 +524,12 @@ FreeRTOS_Emulator_EXTERNAL_OBJECTS =
 ../bin/FreeRTOS_Emulator: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Draw.c.o
 ../bin/FreeRTOS_Emulator: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Font.c.o
 ../bin/FreeRTOS_Emulator: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Ball.c.o
+../bin/FreeRTOS_Emulator: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o
+../bin/FreeRTOS_Emulator: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o
 ../bin/FreeRTOS_Emulator: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o
 ../bin/FreeRTOS_Emulator: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o
 ../bin/FreeRTOS_Emulator: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.o
+../bin/FreeRTOS_Emulator: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o
 ../bin/FreeRTOS_Emulator: CMakeFiles/FreeRTOS_Emulator.dir/lib/AsyncIO/AsyncIO.c.o
 ../bin/FreeRTOS_Emulator: CMakeFiles/FreeRTOS_Emulator.dir/build.make
 ../bin/FreeRTOS_Emulator: /usr/lib/x86_64-linux-gnu/libSDL2.so
@@ -466,7 +544,7 @@ FreeRTOS_Emulator_EXTERNAL_OBJECTS =
 ../bin/FreeRTOS_Emulator: /usr/lib/x86_64-linux-gnu/libSDL2_mixer.so
 ../bin/FreeRTOS_Emulator: /usr/lib/x86_64-linux-gnu/libSDL2_ttf.so
 ../bin/FreeRTOS_Emulator: CMakeFiles/FreeRTOS_Emulator.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Linking C executable ../bin/FreeRTOS_Emulator"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Linking C executable ../bin/FreeRTOS_Emulator"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/FreeRTOS_Emulator.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -485,9 +563,12 @@ CMakeFiles/FreeRTOS_Emulator.dir/requires: CMakeFiles/FreeRTOS_Emulator.dir/lib/
 CMakeFiles/FreeRTOS_Emulator.dir/requires: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Draw.c.o.requires
 CMakeFiles/FreeRTOS_Emulator.dir/requires: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Font.c.o.requires
 CMakeFiles/FreeRTOS_Emulator.dir/requires: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Ball.c.o.requires
+CMakeFiles/FreeRTOS_Emulator.dir/requires: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_dynamics.c.o.requires
+CMakeFiles/FreeRTOS_Emulator.dir/requires: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/play_graphics.c.o.requires
 CMakeFiles/FreeRTOS_Emulator.dir/requires: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Utils.c.o.requires
 CMakeFiles/FreeRTOS_Emulator.dir/requires: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Sound.c.o.requires
 CMakeFiles/FreeRTOS_Emulator.dir/requires: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/TUM_Event.c.o.requires
+CMakeFiles/FreeRTOS_Emulator.dir/requires: CMakeFiles/FreeRTOS_Emulator.dir/lib/Gfx/menu_graphics.c.o.requires
 CMakeFiles/FreeRTOS_Emulator.dir/requires: CMakeFiles/FreeRTOS_Emulator.dir/lib/AsyncIO/AsyncIO.c.o.requires
 
 .PHONY : CMakeFiles/FreeRTOS_Emulator.dir/requires
