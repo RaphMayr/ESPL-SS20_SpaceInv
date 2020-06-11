@@ -30,6 +30,7 @@ typedef struct Screen_objects {
     signed short y_coord;
     char type;        
     unsigned int state;
+    unsigned int blink;
     SemaphoreHandle_t lock;
 } Object;
 /**
@@ -63,6 +64,29 @@ typedef struct velocities {
 
     SemaphoreHandle_t lock;
 } Velocity;
+/**
+ * @brief struct to represent game data
+ * 
+ * @param score1 Score of player 1
+ * @param score2 Score of player 2
+ * @param hscore High Score of both players
+ * 
+ * @param lives remaining lives for player
+ * @param credit credit left
+ * @param multiplayer indicates whether multiplayer or singleplayer mode
+ * 
+ * @param lock to gurantee thread-safety
+ */
+typedef struct scores{
+    unsigned int score1;
+    unsigned int score2;
+    unsigned int hscore;
+    unsigned int lives;
+    unsigned int credit;
+    unsigned int multiplayer;
+    SemaphoreHandle_t lock;
+} Data;
+
 /**
  * @brief initializes playscreen
  * 
@@ -147,5 +171,44 @@ int vCheck_bottomCollision(Object alien);
  * 
  */
 void vUpdate_bunker(unsigned int row);
+/**
+ * @brief draws dynamic score items 
+ * 
+ * draws scores, high-scores remaining lives and Credit
+ * 
+ */
+void vDrawScores();
+/**
+ * @brief draws alien matrix
+ */
+void vDrawAliens();
+/**
+ * @brief draws bunkers
+ * 
+ */
+void vDrawBunkers();
+/**
+ * @brief draws all dynamic Items
+ */
+void vDrawDynamicItems();
+/**
+ * @brief update Positions
+ */
+void vUpdatePositions(unsigned int Flags[5], unsigned int ms);
+/**
+ * @brief updates aliens
+ */
+void vUpdate_aliens(unsigned int Flags[5], unsigned int ms);
+
+int vCheckCollisions();
+
+int vCheckCollision_proj_alien();
+
+int vCheckCollision_proj_bunker();
+
+int vCheckCollision_proj_upper();
+
+int vCheckCollision_alien_player();
+
 
 #endif

@@ -272,7 +272,8 @@ void vPlay_screen(void *pvParameters)
     clock_t timestamp;
     double debounce_delay = 0.025;
 
-    /**
+    int reset = 0;
+    /** 
      * Signals for play_dynamics.c;
      * Flag 0: move left; Flag 1: move right
      * Flag 2: shoot; Flag 3: move aliens
@@ -284,13 +285,16 @@ void vPlay_screen(void *pvParameters)
     xLastWakeTime = xTaskGetTickCount();
     prevWakeTime = xLastWakeTime;
 
-    int reset;
-
     while (1) {
         if (DrawSignal) {
             if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
                 pdTRUE) {
-                    
+                xLastWakeTime = xTaskGetTickCount();
+                if (reset) {
+                    prevWakeTime = xLastWakeTime;
+                    reset = 0;
+                }
+
                 xGetButtonInput(); // Update global input
                 // currently in state 1
                 /* when escape is pressed send signal 
@@ -330,19 +334,6 @@ void vPlay_screen(void *pvParameters)
                     xSemaphoreGive(buttons.lock);
                 }   
                 
-
-                // receive reset signal 
-                // when signal == 1 -> Flag[5] = 1
-                
-                if (xQueueReceive(reset_queue, &reset, 0)) {
-                    if (reset) {
-                        Flags[4] = 1;
-                    }
-                }
-                
-                
-                xLastWakeTime = xTaskGetTickCount();
-                
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
                 game_over = vDraw_playscreen(Flags, 
@@ -352,10 +343,10 @@ void vPlay_screen(void *pvParameters)
                 
                 xSemaphoreGive(ScreenLock);
 
-                prevWakeTime = xLastWakeTime;
-
                 if (game_over) {
                     vTaskDelay(2000);
+                    reset = 1;
+                    printf("resetting...\n");
                     xSemaphoreGive(state_machine_signal);
                     xQueueSend(next_state_queue, 
                                 &next_state_mainmenu, 0);
@@ -375,6 +366,8 @@ void vPlay_screen(void *pvParameters)
                 Flags[1] = 0;
                 Flags[2] = 0;  
                 Flags[4] = 0;
+
+                prevWakeTime = xLastWakeTime;
             } 
         } 
     }
@@ -503,8 +496,6 @@ void vStateMachine(void *pvParameters) {
 
     int state = 0;
 
-    int reset = 1;
-
     const int state_change_period = 750;
     TickType_t last_change = xTaskGetTickCount();
 
@@ -529,8 +520,7 @@ void vStateMachine(void *pvParameters) {
                     vTaskSuspend(hscoreview_task); 
                     vTaskResume(playscreen_task);
                     vInit_playscreen();
-                    // give signal to reset positions
-                    xQueueSend(reset_queue, &reset, 0);
+                    
                 }
                 if (state == 2) {
                     vTaskSuspend(playscreen_task);

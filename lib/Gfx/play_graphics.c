@@ -27,22 +27,62 @@
 #define px 2
 
 
-void vDrawPlayScreen(void) {
+void vDrawStaticItems()
+{
+    // coordinates of Gamescreen
     signed short x_playscreen = 100;
     signed short y_playscreen = 0;
     signed short w_playscreen = 440;
     signed short h_playscreen = 480;
 
-    tumDrawClear(White);
-    tumDrawFilledBox(x_playscreen, y_playscreen, 
-                w_playscreen, h_playscreen,
-                Black);
+    static char score1[50];
+    static int score1_width = 0;
 
-    
+    static char score2[50];
+    static int score2_width = 0;
+
+    static char hscore[50];
+    static int hscore_width = 0;
+
+    // drawing Gamescreen
+    tumDrawClear(White);
+    tumDrawFilledBox(x_playscreen, y_playscreen,
+                     w_playscreen, h_playscreen,
+                     Black);
 
     tumDrawLine(x_playscreen, h_playscreen - 30,
                 x_playscreen + w_playscreen,
                 h_playscreen - 30, 1, Green);
+    
+    tumDrawLine(x_playscreen, 50,
+                x_playscreen + w_playscreen,
+                50, 1, Green);
+
+    sprintf(score1, "SCORE<1>");
+    tumGetTextSize((char *) score1,
+                    &score1_width, NULL);
+    tumDrawText(score1,
+                x_playscreen + 20,
+                y_playscreen,
+                Green);
+
+    sprintf(score2, "SCORE<2>");
+    tumGetTextSize((char *) score2,
+                    &score2_width, NULL);
+    tumDrawText(score2,
+                (x_playscreen + w_playscreen - 
+                score2_width - 20),
+                y_playscreen,
+                Green);
+
+    sprintf(hscore, "HI-SCORE");
+    tumGetTextSize((char *) hscore,
+                    &hscore_width, NULL);
+    tumDrawText(hscore,
+                CENTER_X - score2_width / 2,
+                y_playscreen,
+                Green);
+
 }
 
 void vDrawPlayer(signed short pos_x, signed short pos_y) {
@@ -85,38 +125,6 @@ void vDrawBunker(signed short pos_x, signed short pos_y) {
 
     tumDrawFilledBox(pos_x, pos_y + 11*px, 5*px, 2*px, color);  // box -3l
     tumDrawFilledBox(pos_x + 19*px, pos_y + 11*px, 5*px, 2*px, color);
-}
-
-void vDrawAliens(signed short pos_x, signed short pos_y, 
-                    signed short state)
-{
-    const unsigned short x_distance = 30;
-    const unsigned short y_distance = 40;
-
-    for (int i=0; i<9; i++) {
-        vDraw_jellyAlien(pos_x + i*x_distance, pos_y, state);
-    }
-
-    for (int i=0; i<9; i++) {
-        vDraw_crabAlien(pos_x + i*x_distance,  
-                        pos_y + y_distance, state);
-    }
-
-    for (int i=0; i<9; i++) {
-        vDraw_crabAlien(pos_x + i*x_distance,  
-                        pos_y + 2*y_distance, state);
-    }
-
-    for (int i=0; i<9; i++) {
-        vDraw_fredAlien(pos_x + i*35 - 20,
-                        pos_y + 3*y_distance, state);
-    }
-
-    for (int i=0; i<9; i++) {
-        vDraw_fredAlien(pos_x + i*35 - 20,
-                        pos_y + 4*y_distance, state);
-    }
-    
 }
 
 void vDraw_fredAlien(signed short pos_x, signed short pos_y, 
@@ -311,3 +319,4 @@ void vDrawProjectile(signed short pos_x, signed short pos_y)
 {   
     tumDrawFilledBox(pos_x, pos_y, px, 2*px, Green);
 }
+
