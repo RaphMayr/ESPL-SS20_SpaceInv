@@ -57,15 +57,18 @@ Velocity alien_velo = { 0 };
 Data gamedata = { 0 };
 
 
-void vInit_playscreen()
+void vInit_playscreen(unsigned int level)
 {
     // initialize gamedata
-    gamedata.score1 = 0;
-    gamedata.score2 = 0;
-    gamedata.hscore = 0;
+    if (level == 1) {
+        gamedata.score1 = 0;
+        gamedata.score2 = 0;
+        gamedata.hscore = 0;
+    }
     gamedata.lives = 3;
     gamedata.credit = 0;
     gamedata.multiplayer = 0;
+    gamedata.level = level;
     gamedata.lock = xSemaphoreCreateMutex();
 
     // initialize aliens
@@ -102,7 +105,7 @@ void vInit_playscreen()
     // initialize alien velocities
     alien_velo.lock = xSemaphoreCreateMutex();
     if (xSemaphoreTake(alien_velo.lock, portMAX_DELAY)) {
-        alien_velo.dx = DX_ALIEN;
+        alien_velo.dx = DX_ALIEN + level*10;
         alien_velo.dy = DY_ALIEN;
 
         alien_velo.move_right = 1;
@@ -197,9 +200,34 @@ void vInit_playscreen()
  * 3. update Positions -
  * 4. draw Dynamic Items -
  */
+void vEmpty_aliens()
+{
+    for (int row=0; row < 5; row++) {
+        for (int col=0; col < 10; col++) {
+
+            aliens[row][col].state = 0;
+
+
+        }
+    }
+}
 
 int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
 {
+
+    if (vCheck_aliensleft()) {
+        if (xSemaphoreTake(gamedata.lock, 0)) {
+
+            gamedata.level++;
+            vInit_playscreen(gamedata.level);
+
+            xSemaphoreGive(gamedata.lock);
+        }
+        vDrawNextLevelScreen();
+        
+        return 2;
+    }
+
     vDrawStaticItems(); 
 
     // projectile is initialized when shoot flag is set and not active
@@ -212,10 +240,11 @@ int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
     }
     
 
-    if(vCheckCollisions()) {    // check collisions
+    if (vCheckCollisions()) {    // check collisions
         vDrawGameOver();
         return 1;
     }
+    
 
     vUpdatePositions(Flags, ms);    // update positions
 
@@ -570,6 +599,26 @@ void vUpdate_aliens(unsigned int Flags[5], unsigned int ms)
     unsigned int dx = alien_velo.dx;
     float update_interval = ms / 1000.0;
     
+
+    for (int row=0; row < 5; row++) {
+        for (int col=0; col < 10; col++) {
+            if (xSemaphoreTake(aliens[row][col].lock, portMAX_DELAY)) {
+
+                
+                if (aliens[row][col].x_coord <= 120 &&
+                    aliens[row][col].state) {
+                    alien_velo.move_right = 1;
+                }
+            
+                if (aliens[row][col].x_coord >= 500 &&
+                    aliens[row][col].state) {
+                    alien_velo.move_right = 0;
+                }
+                
+                xSemaphoreGive(aliens[row][col].lock);
+            } 
+        }
+    }
     
     for (int row=0; row < 5; row++) {
         for (int col=0; col < 10; col++) {
@@ -590,16 +639,6 @@ void vUpdate_aliens(unsigned int Flags[5], unsigned int ms)
                     aliens[row][col].x_coord = round(aliens[row][col].f_x);
                     aliens[row][col].blink = 0;
                 }
-
-                if (aliens[row][col].x_coord >= 500 &&
-                    aliens[row][col].state) {
-                    alien_velo.move_right = 0;
-                }
-                if (aliens[row][col].x_coord <= 120 &&
-                    aliens[row][col].state) {
-                    alien_velo.move_right = 1;
-                }
-
                 xSemaphoreGive(aliens[row][col].lock);
             }
         }
@@ -883,6 +922,10 @@ void vDelete_laser() {
  * #####################################################
  * END
  */
+/**
+ * #####################################################
+ * SCORE FUNCTIONS
+ */
 
 void vIncrease_score(char alien_type)
 {   
@@ -907,5 +950,55 @@ void vIncrease_score(char alien_type)
 
         xSemaphoreGive(gamedata.lock);
     }
+}
+
+int vCheck_aliensleft() 
+{
+    for (int row=0; row < 5; row++) {
+        for (int col=0; col < 10; col++) {
+            
+            if (xSemaphoreTake(aliens[row][col].lock, 0)) {
+                
+                if (aliens[row][col].state) {
+                    xSemaphoreGive(aliens[row][col].lock);
+                    return 0;
+                }
+
+                xSemaphoreGive(aliens[row][col].lock);
+            }
+        }
+    }
+    return 1;
+}
+
+void vDrawNextLevelScreen()
+{
+    // coordinates of Gamescreen
+    signed short x_hscorescreen = 100;
+    signed short y_hscorescreen = 0;
+    signed short w_hscorescreen = 440;
+    signed short h_hscorescreen = 480;
+
+    static char text[50];
+    static int text_width = 0;
+
+    // drawing Gamescreen
+    tumDrawClear(White);
+    tumDrawFilledBox(x_hscorescreen, y_hscorescreen,
+                    w_hscorescreen, h_hscorescreen,
+                    Black);
+
+    if (xSemaphoreTake(gamedata.lock, 0)) {
+
+        sprintf(text, "LEVEL %i", gamedata.level);
+
+        xSemaphoreGive(gamedata.lock);
+    }
+    tumGetTextSize((char *) text,
+                    &text_width, NULL);
+    tumDrawText(text,
+                CENTER_X - text_width / 2,
+                CENTER_Y,
+                Green);
 }
 

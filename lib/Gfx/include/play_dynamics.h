@@ -89,6 +89,7 @@ typedef struct scores{
     unsigned int lives;
     unsigned int credit;
     unsigned int multiplayer;
+    unsigned int level;
     SemaphoreHandle_t lock;
 } Data;
 
@@ -97,7 +98,7 @@ typedef struct scores{
  * 
  * done when first starting game or resetting from Main Menu
  */
-void vInit_playscreen();
+void vInit_playscreen(unsigned int level);
 /**
  * @brief draws playscreen with all its objects
  * 
@@ -244,8 +245,21 @@ void vCreate_laser();
 void vDelete_laser();
 
 /**
- * 
+ * @brief increases score when alien is hit
  */
 void vIncrease_score(char alien_type);
+
+/**
+ * @brief checks if alien-array is empty
+ * 
+ * @return 1 when array is empty
+ */
+int vCheck_aliensleft();
+
+/**
+ * @brief draws next level screen
+ */
+void vDrawNextLevelScreen();
+
 
 #endif

@@ -291,7 +291,7 @@ void vPlay_screen(void *pvParameters)
                 pdTRUE) {
                 xLastWakeTime = xTaskGetTickCount();
                 xQueueReceive(reset_queue, &reset, 0);
-                if (reset) {
+                if (reset || game_over == 2) {
                     prevWakeTime = xLastWakeTime;
                     reset = 0;
                 }
@@ -348,13 +348,15 @@ void vPlay_screen(void *pvParameters)
                 
                 xSemaphoreGive(ScreenLock);
 
-                if (game_over) {
+                if (game_over == 1) {
                     vTaskDelay(2000);
                     xSemaphoreGive(state_machine_signal);
                     xQueueSend(next_state_queue, 
                                 &next_state_mainmenu, 0);
                 }
-
+                if (game_over == 2) {
+                    vTaskDelay(2000);
+                }
                 
 
                 ticks++;
@@ -519,7 +521,7 @@ void vStateMachine(void *pvParameters) {
                     vTaskSuspend(cheatview_task);
                     vTaskSuspend(hscoreview_task); 
                     vTaskResume(playscreen_task);
-                    vInit_playscreen();
+                    vInit_playscreen(1);
                     xQueueSend(reset_queue, &reset, 0);
                     
                 }
