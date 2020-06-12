@@ -208,7 +208,15 @@ int vCheckCollision_proj_bunker();
 
 int vCheckCollision_proj_upper();
 
+int vCheckCollision_laser_player();
+
+int vCheckCollision_laser_proj();
+
 int vCheckCollision_alien_player();
 
+void vCreate_laser();
 
+void vUpdate_laser();
+
+void vDelete_laser();
 #endif

@@ -276,7 +276,7 @@ void vPlay_screen(void *pvParameters)
     /** 
      * Signals for play_dynamics.c;
      * Flag 0: move left; Flag 1: move right
-     * Flag 2: shoot; Flag 3: move aliens
+     * Flag 2: shoot; Flag 3: trigger laser shot
      * Flag 4: reset Flag
      */
     unsigned int Flags[5] = { 0 };
@@ -334,6 +334,10 @@ void vPlay_screen(void *pvParameters)
 
                     xSemaphoreGive(buttons.lock);
                 }   
+                if (ticks == 200) { // trigger lasershot
+                    Flags[3] = 1;
+                    ticks = 0;
+                }
                 
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
@@ -351,18 +355,13 @@ void vPlay_screen(void *pvParameters)
                                 &next_state_mainmenu, 0);
                 }
 
-                if (ticks == 100) {
-                    Flags[3] = 1;
-                }
-                if (ticks == 200) {
-                    Flags[3] = 0;
-                    ticks = 0;
-                }
+                
 
                 ticks++;
 
                 Flags[0] = 0;
                 Flags[1] = 0;
+                Flags[3] = 0;
                 Flags[2] = 0;  
                 Flags[4] = 0;
 
