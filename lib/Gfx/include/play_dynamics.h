@@ -21,6 +21,9 @@
  * 
  * @param state object is displayed when == 1
  * 
+ * @param blink changes state of object
+ * -> state change of aliens (other textures)
+ * 
  * @param lock to gurantee thread-safety
  */
 typedef struct Screen_objects {
@@ -54,6 +57,7 @@ typedef struct bunker_objects {
  * 
  * @param dx x-velocity
  * @param dy y-velocity
+ * @param move_right move right (1) or left (0)
  * 
  * @param lock to gurantee thread-safety
  */
@@ -73,7 +77,8 @@ typedef struct velocities {
  * 
  * @param lives remaining lives for player
  * @param credit credit left
- * @param multiplayer indicates whether multiplayer or singleplayer mode
+ * @param multiplayer indicates whether multiplayer 
+ * or singleplayer mode
  * 
  * @param lock to gurantee thread-safety
  */
@@ -98,17 +103,85 @@ void vInit_playscreen();
  * 
  * @param Flags Signals from main task
  * Flag 0: move left; Flag 1: move right
- * Flag 2: shoot; Flag 3: move aliens
+ * Flag 2: shoot; Flag 3: periodically create lasershot
+ * 
  * @param ms indicates time gone since last Wake time
  * -> update positions
  */
 int vDraw_playscreen(unsigned int Flags[5], unsigned int ms);
 /**
- * @brief checks projectile collision with alien
- * 
- * @param alien to be checked
+ * @brief checks collisions of all screen objects
+ * -> calls all other vCheckCollision_... functions
  */
-int vCheck_ProjCollision(Object alien);
+int vCheckCollisions();
+/**
+ * @brief update Positions
+ */
+void vUpdatePositions(unsigned int Flags[5], unsigned int ms);
+/**
+ * @brief draws all dynamic Items
+ */
+void vDrawDynamicItems();
+
+
+/**
+ * @brief checks collision of projectile and alien
+ * 
+ * @return 1 when collision
+ */
+int vCheckCollision_proj_alien();
+/**
+ * @brief checks collision of projectile and bunkers
+ * 
+ * @return 1 when collision
+ */
+int vCheckCollision_proj_bunker();
+/**
+ * @brief checks collision of projectile and upper wall
+ * 
+ * @return 1 when collision
+ */
+int vCheckCollision_proj_upper();
+/**
+ * @brief checks collision of laser and player
+ * 
+ * @return 1 when collision 
+ */
+int vCheckCollision_laser_player();
+/**
+ * @brief checks collision of laser and projectile
+ * -> when they collide both get deleted
+ * @return 1 when collision
+ */
+int vCheckCollision_laser_proj();
+/**
+ * @brief checks collision of laser and bunkers
+ * 
+ * @return 1 when collision 
+ */
+int vCheckCollision_laser_bunker();
+/**
+ * @brief check collision of laser and bottom wall
+ * 
+ * @return 1 when collision
+ */
+int vCheckCollision_laser_bottom();
+/**
+ * @brief check collision of aliens and player
+ * -> game over when aliens reach player
+ * @return 1 when collision
+ */
+int vCheckCollision_alien_player();
+
+
+/**
+ * @brief updates aliens position
+ * moving left, right and down
+ * @param alien to be moved
+ * @param state indicates whether to move left or right
+ * @param ms time interval for which alien is updated
+ */
+void vUpdate_aliens(unsigned int Flags[5], unsigned int ms);
 /**
  * @brief updates position of player
  * 
@@ -120,62 +193,22 @@ void vUpdate_player(unsigned int move_left,
                     unsigned int move_right,
                     unsigned int ms);
 /**
- * @brief creates projectile when shoot is pressed
- * 
- * @return 1 when collision; 0 when no collision
- */
-void vCreate_projectile();
-/**
  * @brief updates position of projectile
  * 
  * @param ms time interval for which position is to be updated
  */
 void vUpdate_projectile(unsigned int ms);
 /**
- * @brief deletes projectile
+ * @brief updates lasershot
+ * -> lasershot flies downwards
  */
-void vDelete_projectile();
-/**
- * @brief updates aliens position
- * moving left, right and down
- * @param alien to be moved
- * @param state indicates whether to move left or right
- * @param ms time interval for which alien is updated
- */
-Object vUpdate_alien(Object alien, unsigned int state,
-                        unsigned int ms);
-/**
- * @brief initializes aliens when new game is started
- * 
- * @param Object alien to be resetted
- * @param row which row alien is in matrix
- * @param col which column alien is in matrix 
- */
-Object vReset_alien(Object alien, int row, int col);
-/**
- * @brief deletes alien 
- * 
- * @param alien to be deleted
- * 
- * @return alien in "deleted" state
- */
-Object vDelete_alien();
-/**
- * @brief check bottom collision of aliens 
- * 
- * @param alien to be checked
- */
-int vCheck_bottomCollision(Object alien);
-/**
- * @brief updates bunker texture according to impact
- * 
- */
-void vUpdate_bunker(unsigned int row);
+void vUpdate_laser();
+
+
 /**
  * @brief draws dynamic score items 
  * 
  * draws scores, high-scores remaining lives and Credit
- * 
  */
 void vDrawScores();
 /**
@@ -184,39 +217,35 @@ void vDrawScores();
 void vDrawAliens();
 /**
  * @brief draws bunkers
- * 
  */
 void vDrawBunkers();
+
+
 /**
- * @brief draws all dynamic Items
+ * @brief creates projectile when shoot is pressed
+ * 
+ * @return 1 when collision; 0 when no collision
  */
-void vDrawDynamicItems();
+void vCreate_projectile();
 /**
- * @brief update Positions
+ * @brief deletes projectile
  */
-void vUpdatePositions(unsigned int Flags[5], unsigned int ms);
+void vDelete_projectile();
 /**
- * @brief updates aliens
+ * @brief create lasershot
+ * -> selects random alien of bottom most row 
+ * -> sets coordinates of lasershot to this alien
  */
-void vUpdate_aliens(unsigned int Flags[5], unsigned int ms);
-
-int vCheckCollisions();
-
-int vCheckCollision_proj_alien();
-
-int vCheckCollision_proj_bunker();
-
-int vCheckCollision_proj_upper();
-
-int vCheckCollision_laser_player();
-
-int vCheckCollision_laser_proj();
-
-int vCheckCollision_alien_player();
-
 void vCreate_laser();
 
-void vUpdate_laser();
-
+/**
+ * @brief deletes lasershot
+ */
 void vDelete_laser();
+
+/**
+ * 
+ */
+void vIncrease_score(char alien_type);
+
 #endif

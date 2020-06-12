@@ -29,8 +29,14 @@
 #define LEFT_CONSTRAINT_X 100
 #define RIGHT_CONSTRAINT_X 540
 
+#define MAX_X_VELO 80
+
+#define SCORE_JELLY 40
+#define SCORE_CRAB 20
+#define SCORE_FRED 10
+
 #define DX_ALIEN 20     // initial x-velocity of aliens
-#define DY_ALIEN 5    // initial y-velocity of aliens
+#define DY_ALIEN 2    // initial y-velocity of aliens
 
 #define DY_PROJECTILE 200   // y-velocity of projectile
 
@@ -186,33 +192,34 @@ void vInit_playscreen()
 
 /**
  * vPlay();
- * 1. draw Static Items
- * 2. check Collisions
- * 3. update Positions
- * 4. draw Dynamic Items
+ * 1. draw Static Items -
+ * 2. check Collisions -
+ * 3. update Positions -
+ * 4. draw Dynamic Items -
  */
-
 
 int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
 {
-    vDrawStaticItems();
+    vDrawStaticItems(); 
 
     // projectile is initialized when shoot flag is set and not active
     if (Flags[2] && (projectile.state == 0)) {  
         vCreate_projectile();
     }
     
-    if (Flags[3]) {
+    if (Flags[3]) {     // periodic timer from main function
         vCreate_laser();
     }
     
 
-    if(vCheckCollisions()) {
+    if(vCheckCollisions()) {    // check collisions
         vDrawGameOver();
         return 1;
     }
-    vUpdatePositions(Flags, ms);
-    vDrawDynamicItems();
+
+    vUpdatePositions(Flags, ms);    // update positions
+
+    vDrawDynamicItems();        // draw dynamic items
     
     
     return 0;
@@ -221,21 +228,25 @@ int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
 int vCheckCollisions() 
 {
     /**
-     * 1. check collision projectile and alien
-     * 2. check collision projectile and bunker
-     * 3. check collision projectile and upper line
-     * 4. check collision laser and player
-     * 5. check collision laser and projectile
-     * 3. check collision laser and bunker
-     * 4. check collision laser and bottom line
-     * 5. check collision alien and player line
+     * 1. check collision projectile and alien -
+     * 2. check collision projectile and bunker - 
+     * 3. check collision projectile and upper line -
+     * 4. check collision laser and player -
+     * 5. check collision laser and projectile - 
+     * 3. check collision laser and bunker -
+     * 4. check collision laser and bottom line -
+     * 5. check collision alien and player line -
      */
 
     if (vCheckCollision_proj_alien()) {
         vDelete_projectile();
         // increase speed alien
         if (xSemaphoreTake(alien_velo.lock, 0)) {
-            alien_velo.dx += 5;
+            if (alien_velo.dx <= MAX_X_VELO) {
+                alien_velo.dx += 5;
+                printf("increasing velocity\n");
+                printf("x-velocity: %i\n", alien_velo.dx);
+            }
             xSemaphoreGive(alien_velo.lock);
         }
     }
@@ -256,11 +267,119 @@ int vCheckCollisions()
         vDelete_laser();
         vDelete_projectile();
     }
-
+    if (vCheckCollision_laser_bunker()) {
+        vDelete_laser();
+    }
+    if (vCheckCollision_laser_bottom()) {
+        vDelete_laser();
+    }
     if (vCheckCollision_alien_player()) {
         return 1;
     }
 
+    return 0;
+}
+
+void vUpdatePositions(unsigned int Flags[5], unsigned int ms)
+{
+    /**
+     * 1. update aliens positions
+     * 2. update projectile position
+     * 3. update laser position
+     * 4. update player position
+     */
+
+
+    vUpdate_aliens(Flags, ms);
+
+    if (projectile.state) {
+        vUpdate_projectile(ms);
+    }
+    if (laser.state) {
+        vUpdate_laser(ms);
+    }
+
+    vUpdate_player(Flags[0], Flags[1], ms);
+}
+
+void vDrawDynamicItems() 
+{
+    /**
+     * 1. draw Scores
+     * 2. draw Aliens
+     * 3. draw Laser
+     * 4. draw bunkers
+     * 5. draw projectile
+     * 6. draw player
+     */
+
+    vDrawScores();
+
+    vDrawAliens();
+
+    if (laser.state) {
+        vDrawProjectile(laser.x_coord, laser.y_coord);
+    }
+
+    vDrawBunkers();
+
+    if (projectile.state) {
+        vDrawProjectile(projectile.x_coord, projectile.y_coord);
+    }
+
+    vDrawPlayer(player.x_coord, player.y_coord);
+}
+/**
+ * #####################################################
+ * CHECK COLLISION FUNCTIONS
+ */
+
+int vCheckCollision_laser_bottom()
+{
+    signed short laser_y;
+
+    if (xSemaphoreTake(laser.lock, 0)) {
+
+        laser_y = laser.y_coord + 2*px;
+
+        xSemaphoreGive(laser.lock);
+    }
+    if (laser_y >= SCREEN_HEIGHT - 30) {
+        return 1;
+    }
+    return 0;
+}
+
+int vCheckCollision_laser_bunker() 
+{
+    signed short laser_x;
+    signed short laser_y;
+
+    signed short bunker_x;
+    signed short bunker_y;
+
+    if (xSemaphoreTake(laser.lock, 0)) {
+        laser_x = laser.x_coord;
+        laser_y = laser.y_coord + 2*px;
+
+        xSemaphoreGive(laser.lock);
+    }
+    for (int row=0; row < 4; row++) {
+        if (xSemaphoreTake(bunkers[row].lock, 0)) {
+
+            bunker_x = bunkers[row].x_coord;
+            bunker_y = bunkers[row].y_coord + 4*px;
+
+            xSemaphoreGive(bunkers[row].lock);
+        }
+
+        if (laser_y >= bunker_y && laser_y <= bunker_y + 20*px) {
+            if (laser_x >= bunker_x && laser_x <= bunker_x + 24*px) {
+
+                return 1;
+            }
+        }
+    }
     return 0;
 }
 
@@ -381,7 +500,6 @@ int vCheckCollision_proj_bunker()
     return 0;
 }
 
-
 int vCheckCollision_proj_alien()
 {
     signed short hit_wall_x;
@@ -411,21 +529,24 @@ int vCheckCollision_proj_alien()
                 }
                 if ((hit_wall_y >= projectile.y_coord)
                         && projectile.y_coord >= hit_wall_y - 5*px) {
-                    for (int i=0; i<width; i++) {
-                        if (hit_wall_x + i == projectile.x_coord) {
-                            // delete alien
-                            aliens[row][col].state = 0;
+                    if (projectile.x_coord >= hit_wall_x &&
+                            projectile.x_coord <= hit_wall_x + width) {
+                        // delete alien
+                        aliens[row][col].state = 0;
 
-                            aliens[row][col].f_x = 0;
-                            aliens[row][col].f_y = 0;
+                        aliens[row][col].f_x = 0;
+                        aliens[row][col].f_y = 0;
 
-                            aliens[row][col].x_coord = aliens[row][col].f_x;
-                            aliens[row][col].y_coord = aliens[row][col].f_y;
+                        aliens[row][col].x_coord = aliens[row][col].f_x;
+                        aliens[row][col].y_coord = aliens[row][col].f_y;
+
+                        // increase score
+                        vIncrease_score(aliens[row][col].type);
                             
-                            xSemaphoreGive(aliens[row][col].lock);
+                        xSemaphoreGive(aliens[row][col].lock);
 
-                            return 1;
-                        }
+                        return 1;
+                        
                     }
                 }
             }
@@ -435,29 +556,14 @@ int vCheckCollision_proj_alien()
     
     return 0;
 }
-
-void vUpdatePositions(unsigned int Flags[5], unsigned int ms)
-{
-    /**
-     * 1. update aliens positions
-     * 2. update projectile position
-     * 3. update laser position
-     * 4. update player position
-     */
-
-
-    vUpdate_aliens(Flags, ms);
-
-    if (projectile.state) {
-        vUpdate_projectile(ms);
-    }
-    if (laser.state) {
-        vUpdate_laser(ms);
-    }
-
-    vUpdate_player(Flags[0], Flags[1], ms);
-}
-
+/**
+ * #####################################################
+ * END
+ */
+/**
+ * #####################################################
+ * UPDATE POSITION FUNCTIONS
+ */
 void vUpdate_aliens(unsigned int Flags[5], unsigned int ms) 
 {
     unsigned int dy = alien_velo.dy;
@@ -472,14 +578,6 @@ void vUpdate_aliens(unsigned int Flags[5], unsigned int ms)
                 aliens[row][col].f_y += dy * update_interval;
                 aliens[row][col].y_coord = round(aliens[row][col].f_y);
 
-                if (aliens[row][col].x_coord >= 500 && 
-                        aliens[row][col].state == 1) {
-                    alien_velo.move_right = 0;
-                }
-                if (aliens[row][col].x_coord <= 120 && 
-                    aliens[row][col].state == 1) {
-                    alien_velo.move_right = 1;
-                }
                 // move left
                 if (!alien_velo.move_right) {
                     aliens[row][col].f_x -= dx*update_interval;
@@ -493,41 +591,80 @@ void vUpdate_aliens(unsigned int Flags[5], unsigned int ms)
                     aliens[row][col].blink = 0;
                 }
 
+                if (aliens[row][col].x_coord >= 500 &&
+                    aliens[row][col].state) {
+                    alien_velo.move_right = 0;
+                }
+                if (aliens[row][col].x_coord <= 120 &&
+                    aliens[row][col].state) {
+                    alien_velo.move_right = 1;
+                }
+
                 xSemaphoreGive(aliens[row][col].lock);
             }
         }
     }
 }
 
-void vDrawDynamicItems() 
+void vUpdate_player(unsigned int move_left, 
+                    unsigned int move_right, 
+                    unsigned int ms)
 {
-    /**
-     * 1. draw Scores
-     * 2. draw Aliens
-     * 3. draw Laser
-     * 4. draw bunkers
-     * 5. draw projectile
-     * 6. draw player
-     */
+    unsigned int dx = 150;
+    float update_interval = ms / 1000.0;
 
-    vDrawScores();
-
-    vDrawAliens();
-
-    if (laser.state) {
-        vDrawProjectile(laser.x_coord, laser.y_coord);
+    if (xSemaphoreTake(player.lock, 0)) {
+        if (move_left) {
+                // constrain left move with screen border
+            if (player.x_coord > LEFT_CONSTRAINT_X + 1) {
+                player.f_x -= dx * update_interval;
+            }
+        }
+        if (move_right) {
+                // constrain right move with screen border
+            if (player.x_coord < 513) { 
+                player.f_x += dx * update_interval;
+            }
+        }
+        player.x_coord = round(player.f_x);
+        xSemaphoreGive(player.lock);
     }
+}
 
-    vDrawBunkers();
+void vUpdate_projectile(unsigned int ms) 
+{
+    unsigned int dy = DY_PROJECTILE;
+    float update_interval = ms / 1000.0;
 
-    if (projectile.state) {
-        vDrawProjectile(projectile.x_coord, projectile.y_coord);
+    if (xSemaphoreTake(projectile.lock, 0)) {
+        projectile.f_y -= dy * update_interval;
+        projectile.y_coord = round(projectile.f_y);
+
+        xSemaphoreGive(projectile.lock);
     }
-
-    vDrawPlayer(player.x_coord, player.y_coord);
 
 }
 
+void vUpdate_laser(unsigned int ms)
+{
+    unsigned int dy = DY_PROJECTILE;
+    float update_interval = ms / 1000.0;
+
+    if (xSemaphoreTake(laser.lock, 0))  {
+        laser.f_y += dy * update_interval;
+        laser.y_coord = round(laser.f_y);
+
+        xSemaphoreGive(laser.lock);
+    }
+}
+/**
+ * #####################################################
+ * END
+ */
+/**
+ * #####################################################
+ * DRAW DYNAMIC ITEMS FUNCTIONS
+ */
 void vDrawScores()
 {
     // coordinates of Gamescreen
@@ -626,7 +763,6 @@ void vDrawAliens()
             }
         }
     }
-
 }
 
 void vDrawBunkers()
@@ -641,32 +777,14 @@ void vDrawBunkers()
         }
     }
 }
-
-void vUpdate_player(unsigned int move_left, 
-                    unsigned int move_right, 
-                    unsigned int ms)
-{
-    unsigned int dx = 150;
-    float update_interval = ms / 1000.0;
-
-    if (xSemaphoreTake(player.lock, 0)) {
-        if (move_left) {
-                // constrain left move with screen border
-            if (player.x_coord > LEFT_CONSTRAINT_X + 1) {
-                player.f_x -= dx * update_interval;
-            }
-        }
-        if (move_right) {
-                // constrain right move with screen border
-            if (player.x_coord < 513) { 
-                player.f_x += dx * update_interval;
-            }
-        }
-        player.x_coord = round(player.f_x);
-        xSemaphoreGive(player.lock);
-    }
-}
-
+/**
+ * #####################################################
+ * END
+ */
+/**
+ * #####################################################
+ * CREATE DELETE FUNCTIONS
+ */
 void vCreate_projectile() {
     projectile.lock = xSemaphoreCreateMutex();
     if (xSemaphoreTake(projectile.lock, 0)) {
@@ -681,20 +799,6 @@ void vCreate_projectile() {
 
         xSemaphoreGive(projectile.lock);
     }
-}
-
-void vUpdate_projectile(unsigned int ms) 
-{
-    unsigned int dy = DY_PROJECTILE;
-    float update_interval = ms / 1000.0;
-
-    if (xSemaphoreTake(projectile.lock, 0)) {
-        projectile.f_y -= dy * update_interval;
-        projectile.y_coord = round(projectile.f_y);
-
-        xSemaphoreGive(projectile.lock);
-    }
-
 }
 
 void vDelete_projectile() {
@@ -759,20 +863,6 @@ void vCreate_laser() {
 
         xSemaphoreGive(laser.lock);
     }
-    
-}
-
-void vUpdate_laser(unsigned int ms)
-{
-    unsigned int dy = DY_PROJECTILE;
-    float update_interval = ms / 1000.0;
-
-    if (xSemaphoreTake(laser.lock, 0))  {
-        laser.f_y += dy * update_interval;
-        laser.y_coord = round(laser.f_y);
-
-        xSemaphoreGive(laser.lock);
-    }
 }
 
 void vDelete_laser() {
@@ -787,6 +877,35 @@ void vDelete_laser() {
         laser.state = 0;
 
         xSemaphoreGive(laser.lock);
+    }
+}
+/**
+ * #####################################################
+ * END
+ */
+
+void vIncrease_score(char alien_type)
+{   
+    unsigned int increase;
+
+    switch (alien_type) {
+        case 'J': 
+            increase = SCORE_JELLY;
+            break;
+        case 'C':
+            increase = SCORE_CRAB;
+            break;
+        case 'F':
+            increase = SCORE_FRED;
+            break;
+        default:
+            break;
+    }
+    if (xSemaphoreTake(gamedata.lock, 0)) {
+
+        gamedata.score1 += increase;
+
+        xSemaphoreGive(gamedata.lock);
     }
 }
 
