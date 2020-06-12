@@ -723,10 +723,9 @@ void vCreate_laser() {
 
     for (int row=4; row >= 0; row--) {  // check which alien is the bottom most
         unsigned int counter = 0;
-        col = (rand() % 9);     // select random column
-
+        
         while(counter < 10) {   // constraint for while loop max. col checks are 10
-
+            col = (rand() % 9);     // select random column
             if (xSemaphoreTake(aliens[row][col].lock, 0)) {
                 if (aliens[row][col].state) {   // check if random chosen alien is active
                     // set coordinates for laser origin
