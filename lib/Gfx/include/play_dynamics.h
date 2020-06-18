@@ -44,11 +44,26 @@ typedef struct bunker_objects {
     signed short x_coord;
     signed short y_coord;
 
-    signed short low_coll_x;
-    signed short low_coll_y;
+    signed short low_coll_left_x;
+    signed short low_coll_left_y;
+    unsigned short low_coll_left;
 
-    signed short up_coll_x;
-    signed short up_coll_y;
+    signed short low_coll_mid_x;
+    signed short low_coll_mid_y;
+    unsigned short low_coll_mid;
+
+    signed short low_coll_right_x;
+    signed short low_coll_right_y;
+    unsigned short low_coll_right;
+
+    signed short upp_coll_left_x;
+    signed short upp_coll_left_y;
+    
+    signed short upp_coll_mid_x;
+    signed short upp_coll_mid_y;
+
+    signed short upp_coll_right_x;
+    signed short upp_coll_right_y;
 
     SemaphoreHandle_t lock;
 } Bunker;

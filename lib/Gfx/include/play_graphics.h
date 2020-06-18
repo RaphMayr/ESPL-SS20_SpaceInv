@@ -60,7 +60,9 @@ void vDraw_jellyAlien(signed short pos_x, signed short pos_y,
  * @brief draws Projectiles
  */ 
 void vDrawProjectile(signed short pos_x, signed short pos_y);
-
-
+/**
+ * @brief draws Mothership
+ */
+void vDrawMotherShip(signed short pos_x, signed short pos_y);
 
 #endif

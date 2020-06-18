@@ -334,7 +334,7 @@ void vPlay_screen(void *pvParameters)
 
                     xSemaphoreGive(buttons.lock);
                 }   
-                if (ticks == 200) { // trigger lasershot
+                if (ticks == 50) { // trigger lasershot
                     Flags[3] = 1;
                     ticks = 0;
                 }

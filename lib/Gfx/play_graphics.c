@@ -320,3 +320,44 @@ void vDrawProjectile(signed short pos_x, signed short pos_y)
     tumDrawFilledBox(pos_x, pos_y, px, 2*px, Green);
 }
 
+void vDrawMotherShip(signed short pos_x, signed short pos_y)
+{
+    unsigned int primary_color = Red;    
+    unsigned int secondary_color = Black;
+
+    tumDrawFilledBox(pos_x, pos_y - px, 
+                    14*px, px, primary_color);
+    tumDrawFilledBox(pos_x + px, pos_y - 2*px,
+                    12*px, px, primary_color);
+    tumDrawFilledBox(pos_x + 2*px, pos_y - 3*px, 
+                    10*px, px, primary_color);
+    tumDrawFilledBox(pos_x + 3*px, pos_y - 4*px,
+                    8*px, px, primary_color);
+    tumDrawFilledBox(pos_x + 4*px, pos_y - 5*px,
+                    6*px, px, primary_color);
+
+    tumDrawFilledBox(pos_x + 2*px, pos_y, 
+                    3*px, px, primary_color);
+    tumDrawFilledBox(pos_x + 6*px, pos_y,
+                    2*px, px, primary_color);
+    tumDrawFilledBox(pos_x + 9*px, pos_y,
+                    3*px, px, primary_color);
+    
+    tumDrawFilledBox(pos_x + 3*px, pos_y + px,
+                    px, px, primary_color);
+    tumDrawFilledBox(pos_x + 10*px, pos_y + px,
+                    px, px, primary_color);
+
+    // draw windows of mothership
+    tumDrawFilledBox(pos_x + 3*px, pos_y - 2*px,    
+                    px, px, secondary_color);
+    tumDrawFilledBox(pos_x + 5*px, pos_y - 2*px,
+                    px, px, secondary_color);
+    tumDrawFilledBox(pos_x + 8*px, pos_y - 2*px,
+                    px, px, secondary_color);
+    tumDrawFilledBox(pos_x + 10*px, pos_y - 2*px,
+                    px, px, secondary_color);
+
+    
+
+}

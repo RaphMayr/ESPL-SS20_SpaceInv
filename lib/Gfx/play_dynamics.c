@@ -31,14 +31,14 @@
 
 #define MAX_X_VELO 80
 
-#define SCORE_JELLY 40
+#define SCORE_JELLY 30
 #define SCORE_CRAB 20
 #define SCORE_FRED 10
 
 #define DX_ALIEN 20     // initial x-velocity of aliens
 #define DY_ALIEN 2    // initial y-velocity of aliens
 
-#define DY_PROJECTILE 200   // y-velocity of projectile
+#define DY_PROJECTILE 200   // y-velocity of projectile and laser
 
 Object player = { 0 };
 
@@ -185,8 +185,27 @@ void vInit_playscreen(unsigned int level)
             bunkers[row].x_coord = 145 + 100*row;
             bunkers[row].y_coord = CENTER_Y + 130;
 
-            bunkers[row].low_coll_x = bunkers[row].x_coord;
-            bunkers[row].low_coll_y = bunkers[row].y_coord + 13*px;
+            bunkers[row].low_coll_left_x = bunkers[row].x_coord;
+            bunkers[row].low_coll_left_y = bunkers[row].y_coord + 13*px;
+            bunkers[row].low_coll_left = 0;
+
+            bunkers[row].low_coll_mid_x = bunkers[row].x_coord + 8*px;
+            bunkers[row].low_coll_mid_y = bunkers[row].y_coord + 9*px;
+            bunkers[row].low_coll_mid = 0;
+
+            bunkers[row].low_coll_right_x = bunkers[row].x_coord + 16*px;
+            bunkers[row].low_coll_right_y = bunkers[row].y_coord + 13*px;
+            bunkers[row].low_coll_right = 0;
+
+            bunkers[row].upp_coll_left_x = bunkers[row].x_coord;
+            bunkers[row].upp_coll_left_y = bunkers[row].y_coord;
+
+            bunkers[row].upp_coll_mid_x = bunkers[row].x_coord + 8*px;
+            bunkers[row].upp_coll_mid_y = bunkers[row].y_coord;
+
+            bunkers[row].upp_coll_right_x = bunkers[row].x_coord + 16*px;
+            bunkers[row].upp_coll_right_y = bunkers[row].y_coord;
+
 
             xSemaphoreGive(bunkers[row].lock);
         }
@@ -215,10 +234,10 @@ void vEmpty_aliens()
 int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
 {
 
-    if (vCheck_aliensleft()) {
+    if (vCheck_aliensleft()) {     // when no aliens left progress to nxt lvl
         if (xSemaphoreTake(gamedata.lock, 0)) {
 
-            gamedata.level++;
+            gamedata.level++;   
             vInit_playscreen(gamedata.level);
 
             xSemaphoreGive(gamedata.lock);
@@ -240,7 +259,8 @@ int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
     }
     
 
-    if (vCheckCollisions()) {    // check collisions
+    // check collisions returns 1 when collision alien player occurs
+    if (vCheckCollisions() || gamedata.lives == 0) {    
         vDrawGameOver();
         return 1;
     }
@@ -267,6 +287,7 @@ int vCheckCollisions()
      * 5. check collision alien and player line -
      */
 
+    
     if (vCheckCollision_proj_alien()) {
         vDelete_projectile();
         // increase speed alien
@@ -279,12 +300,15 @@ int vCheckCollisions()
             xSemaphoreGive(alien_velo.lock);
         }
     }
+    
     if (vCheckCollision_proj_bunker()) {
         vDelete_projectile();
     }
+    
     if (vCheckCollision_proj_upper()) {
         vDelete_projectile();
     }
+
     if (vCheckCollision_laser_player()) {
         vDelete_laser();
         if (xSemaphoreTake(gamedata.lock, 0)) {
@@ -344,13 +368,16 @@ void vDrawDynamicItems()
 
     vDrawScores();
 
-    vDrawAliens();
+    vDrawMotherShip(CENTER_X - 7*px, CENTER_Y - 160);
+
 
     if (laser.state) {
         vDrawProjectile(laser.x_coord, laser.y_coord);
     }
 
     vDrawBunkers();
+
+    vDrawAliens();
 
     if (projectile.state) {
         vDrawProjectile(projectile.x_coord, projectile.y_coord);
@@ -381,31 +408,113 @@ int vCheckCollision_laser_bottom()
 
 int vCheckCollision_laser_bunker() 
 {
-    signed short laser_x;
-    signed short laser_y;
 
-    signed short bunker_x;
-    signed short bunker_y;
+    signed short hit_wall_left_x;
+    signed short hit_wall_left_y;
 
-    if (xSemaphoreTake(laser.lock, 0)) {
-        laser_x = laser.x_coord;
-        laser_y = laser.y_coord + 2*px;
+    signed short hit_wall_mid_x;
+    signed short hit_wall_mid_y;
 
-        xSemaphoreGive(laser.lock);
-    }
+    signed short hit_wall_right_x;
+    signed short hit_wall_right_y;
+
+    unsigned short width = 8*px;
+
     for (int row=0; row < 4; row++) {
         if (xSemaphoreTake(bunkers[row].lock, 0)) {
 
-            bunker_x = bunkers[row].x_coord;
-            bunker_y = bunkers[row].y_coord + 4*px;
+            hit_wall_left_x = bunkers[row].upp_coll_left_x;
+            hit_wall_left_y = bunkers[row].upp_coll_left_y;
+
+            hit_wall_mid_x = bunkers[row].upp_coll_mid_x;
+            hit_wall_mid_y = bunkers[row].upp_coll_mid_y;
+
+            hit_wall_right_x = bunkers[row].upp_coll_right_x;
+            hit_wall_right_y = bunkers[row].upp_coll_right_y;
 
             xSemaphoreGive(bunkers[row].lock);
         }
+        if (laser.state) {
 
-        if (laser_y >= bunker_y && laser_y <= bunker_y + 20*px) {
-            if (laser_x >= bunker_x && laser_x <= bunker_x + 24*px) {
+            if (xSemaphoreTake(laser.lock, 0)) {
 
-                return 1;
+                if ((hit_wall_left_y <= laser.y_coord) 
+                    && (laser.y_coord <= hit_wall_left_y + 5*px)) {
+                    
+                    if ((hit_wall_left_x <= laser.x_coord) &&
+                            (laser.x_coord <= hit_wall_left_x + width)) {
+                        
+                            xSemaphoreGive(laser.lock);
+
+                        if (xSemaphoreTake(bunkers[row].lock, 0)) {
+
+                            if (bunkers[row].upp_coll_left_y >=
+                                    bunkers[row].low_coll_left_y + 4*px) {
+                                
+                                xSemaphoreGive(bunkers[row].lock);
+
+                                return 0;
+                            }
+                            else {
+                                printf("increasing hit_wall_left\n");
+                                bunkers[row].upp_coll_left_y += 4*px;
+                            }
+                            xSemaphoreGive(bunkers[row].lock);
+                        }
+                        return 1;
+                    }
+                }
+
+                if ((hit_wall_mid_y <= laser.y_coord) 
+                    && (laser.y_coord <= hit_wall_mid_y + 5*px)) {
+                    
+                    if ((hit_wall_mid_x <= laser.x_coord) && 
+                            (laser.x_coord <= hit_wall_mid_x + width)) {
+                        
+                        xSemaphoreGive(laser.lock);
+                        
+                        if (xSemaphoreTake(bunkers[row].lock, 0)) {
+
+                            if (bunkers[row].upp_coll_mid_y >= 
+                                    bunkers[row].low_coll_mid_y + 4*px) {
+                                xSemaphoreGive(bunkers[row].lock);
+
+                                return 0;
+                            }
+                            else {
+                                bunkers[row].upp_coll_mid_y += 4*px;
+                            }
+                            xSemaphoreGive(bunkers[row].lock);
+                        }
+                        return 1;
+                    }
+                }
+
+                if ((hit_wall_right_y <= laser.y_coord) 
+                    && (laser.y_coord <= hit_wall_right_y + 5*px)) {
+                    
+                    if ((hit_wall_right_x <= laser.x_coord) && 
+                            (laser.x_coord <= hit_wall_right_x + width)) {
+                            
+                        xSemaphoreGive(laser.lock);
+
+                        if (xSemaphoreTake(bunkers[row].lock, 0)) {
+
+                            if (bunkers[row].upp_coll_right_y >= 
+                                    bunkers[row].low_coll_right_y + 4*px) {
+                                xSemaphoreGive(bunkers[row].lock);
+
+                                return 0;
+                            }
+                            else {
+                                bunkers[row].upp_coll_right_y += 4*px;
+                            }
+                            xSemaphoreGive(bunkers[row].lock);
+                        }
+                        return 1;
+                    }
+                }
+                xSemaphoreGive(laser.lock);
             }
         }
     }
@@ -502,29 +611,126 @@ int vCheckCollision_proj_upper()
 
 int vCheckCollision_proj_bunker()
 {
-    signed short hit_wall_x;
-    signed short hit_wall_y;
-    unsigned short width = 24*px;
+    signed short hit_wall_left_x;
+    signed short hit_wall_left_y;
+
+    signed short hit_wall_mid_x;
+    signed short hit_wall_mid_y;
+
+    signed short hit_wall_right_x;
+    signed short hit_wall_right_y;
+
+    unsigned short width = 8*px;
 
     for (int row=0; row < 4; row++) {
+
         if (xSemaphoreTake(bunkers[row].lock, 0)) {
             
-            hit_wall_x = bunkers[row].x_coord;
-            hit_wall_y = bunkers[row].y_coord + 13*px;
+            hit_wall_left_x = bunkers[row].low_coll_left_x;
+            hit_wall_left_y = bunkers[row].low_coll_left_y;
 
-            if ((hit_wall_y >= projectile.y_coord)
-                    && projectile.y_coord >= hit_wall_y - 5*px) {
-                for (int i=0; i < width; i++) {
-                    if (hit_wall_x + i == projectile.x_coord) {
-                        
-                        xSemaphoreGive(bunkers[row].lock);
-                        return 1;
-                    }
-                }
-            }
+            hit_wall_mid_x = bunkers[row].low_coll_mid_x;
+            hit_wall_mid_y = bunkers[row].low_coll_mid_y;
+
+            hit_wall_right_x = bunkers[row].low_coll_right_x;
+            hit_wall_right_y = bunkers[row].low_coll_right_y;
 
             xSemaphoreGive(bunkers[row].lock);
         }
+        if (projectile.state) {
+
+            if (xSemaphoreTake(projectile.lock, 0)) {
+            
+                if ((hit_wall_left_y >= projectile.y_coord)
+                        && (projectile.y_coord >= hit_wall_left_y - 5*px)) {
+                    
+                    if ((hit_wall_left_x <= projectile.x_coord) 
+                            && projectile.x_coord <= hit_wall_left_x + width) {
+                        
+                        xSemaphoreGive(projectile.lock);
+
+                        if (xSemaphoreTake(bunkers[row].lock, 0)) {
+                            
+                            // delete hit wall when bunker is gone
+                            if (bunkers[row].low_coll_left_y <=     
+                                    bunkers[row].upp_coll_left_y - 4*px) {
+                                
+                                xSemaphoreGive(bunkers[row].lock);
+
+                                return 0;
+                            }
+                            else {
+                                bunkers[row].low_coll_left_y -= 4*px;
+                                bunkers[row].low_coll_left++;
+                            }
+
+                            xSemaphoreGive(bunkers[row].lock);
+                        }
+
+                        return 1;
+                    }
+                }
+                if ((hit_wall_mid_y >= projectile.y_coord)
+                        && (projectile.y_coord >= hit_wall_mid_y - 5*px)) {
+                    
+                    if ((hit_wall_mid_x <= projectile.x_coord)
+                            && projectile.x_coord <= hit_wall_mid_x + width) {
+                        
+                        xSemaphoreGive(projectile.lock);
+
+                        if (xSemaphoreTake(bunkers[row].lock, 0)) {
+                            
+                            if (bunkers[row].low_coll_mid_y <= 
+                                    bunkers[row].upp_coll_mid_y - 4*px) {
+                                
+                                xSemaphoreGive(bunkers[row].lock);
+
+                                return 0;
+                            }
+                            else {
+                                bunkers[row].low_coll_mid_y -= 4*px;
+                                bunkers[row].low_coll_mid++;
+                            }
+
+                            xSemaphoreGive(bunkers[row].lock);
+                        }
+
+                        return 1;
+                    }
+                }
+                if ((hit_wall_right_y >= projectile.y_coord)
+                        && (projectile.y_coord >= hit_wall_right_y - 5*px)) {
+                    
+                    if ((hit_wall_right_x <= projectile.x_coord)
+                            && projectile.x_coord <= hit_wall_right_x + width) {
+                        
+                        xSemaphoreGive(projectile.lock);
+
+                        if (xSemaphoreTake(bunkers[row].lock, 0)) {
+                            
+                            if (bunkers[row].low_coll_right_y <= 
+                                    bunkers[row].upp_coll_right_y - 4*px) {
+                                
+                                xSemaphoreGive(bunkers[row].lock);
+
+                                return 0;
+                            }
+                            else {
+                                bunkers[row].low_coll_right_y -= 4*px;
+                                bunkers[row].low_coll_right++;
+                            }
+
+                            xSemaphoreGive(bunkers[row].lock);
+                        }
+
+                        return 1;
+                    }
+                }
+
+                xSemaphoreGive(projectile.lock);
+            }
+        }
+        
     }
     return 0;
 }
@@ -811,6 +1017,43 @@ void vDrawBunkers()
         if (xSemaphoreTake(bunkers[row].lock, 0)) {
 
             vDrawBunker(bunkers[row].x_coord, bunkers[row].y_coord);
+            tumDrawFilledBox(bunkers[row].x_coord, 
+                                bunkers[row].low_coll_left_y,
+                                8*px, 
+                                (bunkers[row].y_coord + 13*px - 
+                                bunkers[row].low_coll_left_y),
+                                Black);
+            tumDrawFilledBox(bunkers[row].x_coord + 8*px, 
+                                bunkers[row].low_coll_mid_y,
+                                8*px, 
+                                (bunkers[row].y_coord + 13*px - 
+                                bunkers[row].low_coll_mid_y),
+                                Black);
+            tumDrawFilledBox(bunkers[row].x_coord + 16*px, 
+                                bunkers[row].low_coll_right_y,
+                                8*px, 
+                                (bunkers[row].y_coord + 13*px - 
+                                bunkers[row].low_coll_right_y),
+                                Black);
+
+            tumDrawFilledBox(bunkers[row].x_coord, 
+                                bunkers[row].y_coord - 4*px,
+                                8*px, 
+                                (bunkers[row].upp_coll_left_y - 
+                                bunkers[row].y_coord),
+                                Black);
+            tumDrawFilledBox(bunkers[row].x_coord + 8*px, 
+                                bunkers[row].y_coord - 4*px,
+                                8*px, 
+                                (bunkers[row].upp_coll_mid_y -  
+                                bunkers[row].y_coord),
+                                Black);
+            tumDrawFilledBox(bunkers[row].x_coord + 16*px, 
+                                bunkers[row].y_coord - 4*px,
+                                8*px, 
+                                (bunkers[row].upp_coll_right_y - 
+                                bunkers[row].y_coord),
+                                Black);            
 
             xSemaphoreGive(bunkers[row].lock);
         }
