@@ -34,7 +34,13 @@ void vDrawPauseScreen();
 /**
  * @brief draws Cheat screen 
  */
-void vDrawCheatScreen();
+void vDrawCheatScreen(unsigned int infLives, unsigned int score,
+                      unsigned int level);
+/**
+ * @brief check cheat screen input
+ */
+int vCheckCheatScreenInput(signed short mouse_x, 
+                            signed short mouse_y);
 /**
  * @brief draws High score screen
  */

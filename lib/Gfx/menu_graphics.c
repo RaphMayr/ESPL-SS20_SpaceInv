@@ -232,7 +232,8 @@ void vDrawPauseScreen()
     
 }
 
-void vDrawCheatScreen()
+void vDrawCheatScreen(unsigned int infLives, unsigned int score,
+                      unsigned int level)
 {
     // coordinates of Gamescreen
     signed short x_cheatscreen = 100;
@@ -240,8 +241,30 @@ void vDrawCheatScreen()
     signed short w_cheatscreen = 440;
     signed short h_cheatscreen = 480;
 
-    static char text[50];
-    static int text_width = 0;
+    static char infLives_text[50];
+    static int infLives_text_width = 0;
+
+    static char toggle_text[50];
+    static int toggle_text_width = 0;
+
+    static char enabled_text[50];
+    static int enabled_text_width = 0;
+
+    static char start_sc_text[50];
+    static int start_sc_width = 0;
+
+    static char start_sc[20];
+
+    static char up_text[20];
+    static char down_text[20];
+
+    static char start_lvl_text[50];
+    static int start_lvl_width = 0;
+
+    static char start_lvl[20];
+
+    static char exit_text[50];
+    static int exit_text_width = 0;
 
     // drawing Gamescreen
     tumDrawClear(White);
@@ -249,13 +272,208 @@ void vDrawCheatScreen()
                     w_cheatscreen, h_cheatscreen,
                     Black);
 
-    sprintf(text, "CHEAT SCREEN");
-    tumGetTextSize((char *) text,
-                    &text_width, NULL);
-    tumDrawText(text,
-                CENTER_X - text_width / 2,
-                CENTER_Y,
-                Green);
+    sprintf(exit_text, "(ESC) to exit");
+    tumGetTextSize((char *) exit_text,
+                    &exit_text_width, NULL);
+    tumDrawText(exit_text, CENTER_X - exit_text_width / 2,
+                CENTER_Y + 200, Green);
+
+    sprintf(infLives_text, "INFINITE LIVES");
+    tumGetTextSize((char *) infLives_text,
+                    &infLives_text_width, NULL);
+    tumDrawFilledBox(CENTER_X - 130 - 5*px,
+                     CENTER_Y - 175, 
+                     infLives_text_width + 10*px, 2*DEFAULT_FONT_SIZE,
+                     Blue);
+    tumDrawText(infLives_text,
+                CENTER_X - 130,
+                CENTER_Y - 170,
+                White);
+
+    sprintf(toggle_text, "TOGGLE <CLICK>");
+    tumGetTextSize((char *) toggle_text,
+                    &toggle_text_width, NULL);
+    tumDrawFilledBox(CENTER_X + 20 - 5*px,
+                     CENTER_Y - 175,
+                     125 + 10*px, 2*DEFAULT_FONT_SIZE,
+                     Blue);
+    tumDrawText(toggle_text,
+                CENTER_X + 20,
+                CENTER_Y - 170,
+                White);
+
+    if (infLives == 1) {
+        sprintf(enabled_text, "enabled");
+    }
+    else {
+        sprintf(enabled_text, "disabled");
+    }
+    tumGetTextSize((char *) enabled_text,
+                   &enabled_text_width, NULL);
+    tumDrawText(enabled_text,
+                CENTER_X + 40,
+                CENTER_Y - 140,
+                Blue);
+
+    sprintf(up_text, "+");
+    sprintf(down_text, "-");
+
+    sprintf(start_sc_text, "Starting Score");
+    tumGetTextSize((char *) start_sc_text,
+                   &start_sc_width, NULL);
+    tumDrawFilledBox(CENTER_X - 130 - 5*px,
+                     CENTER_Y - 50,
+                     start_sc_width + 10*px,
+                     2*DEFAULT_FONT_SIZE,
+                     Blue);
+    tumDrawText(start_sc_text, 
+                CENTER_X - 130,
+                CENTER_Y - 45,
+                White);
+    
+    sprintf(start_sc, "%i", score);
+    tumDrawBox(CENTER_X - 130 - 5*px + 
+                start_sc_width + 20*px,
+                CENTER_Y - 50,
+                15*px,
+                2*DEFAULT_FONT_SIZE,
+                Blue);
+    tumDrawText(start_sc, 
+                CENTER_X - 130 - 5*px + 
+                start_sc_width + 20*px + 5*px,
+                CENTER_Y - 45,
+                White);
+
+    // increase start score
+    tumDrawBox(CENTER_X - 130 - 5*px + 
+               start_sc_width + 35*px,
+               CENTER_Y - 50,
+               10*px,
+               DEFAULT_FONT_SIZE,
+               Blue);
+    tumDrawText(up_text,
+                CENTER_X - 130 - 5*px + 
+                start_sc_width + 38*px,
+                CENTER_Y - 54,
+                White);
+    // decrease start score
+    tumDrawBox(CENTER_X - 130 - 5*px + 
+               start_sc_width + 35*px,
+               CENTER_Y - 35,
+               10*px,
+               DEFAULT_FONT_SIZE,
+               Blue);
+    tumDrawText(down_text,
+                CENTER_X - 130 - 5*px + 
+                start_sc_width + 78,
+                CENTER_Y - 39,
+                White);
+    
+
+    sprintf(start_lvl_text, "Starting Level");
+    tumGetTextSize((char *) start_lvl_text,
+                   &start_lvl_width, NULL);
+    tumDrawFilledBox(CENTER_X - 130 - 5*px,
+                     CENTER_Y + 50,
+                     start_lvl_width + 10*px,
+                     2*DEFAULT_FONT_SIZE,
+                     Blue);
+    tumDrawText(start_lvl_text,
+                CENTER_X - 130,
+                CENTER_Y + 55,
+                White);
+
+    sprintf(start_lvl, "%i", level);
+    tumDrawBox(CENTER_X - 130 - 5*px + 
+               start_lvl_width + 20*px,
+               CENTER_Y + 50,
+               15*px, 
+               2*DEFAULT_FONT_SIZE,
+               Blue);
+    tumDrawText(start_lvl,
+                CENTER_X - 130 - 5*px + 
+                start_lvl_width + 20*px + 5*px,
+                CENTER_Y + 55,
+                White);
+
+    // increase start level 
+    tumDrawBox(CENTER_X - 130 - 5*px + 
+               start_lvl_width + 35*px,
+               CENTER_Y + 50,
+               10*px,
+               DEFAULT_FONT_SIZE,
+               Blue);
+    tumDrawText(up_text,
+                CENTER_X - 130 - 5*px + 
+                start_lvl_width + 38*px,
+                CENTER_Y + 46,
+                White);
+    // decrease start level
+    tumDrawBox(CENTER_X - 130 - 5*px + 
+               start_lvl_width + 35*px,
+               CENTER_Y + 65,
+               10*px,
+               DEFAULT_FONT_SIZE,
+               Blue);
+    tumDrawText(down_text,
+                CENTER_X - 130 - 5*px + 
+                start_lvl_width + 78,
+                CENTER_Y + 61,
+                White);
+    
+}
+
+int vCheckCheatScreenInput(signed short mouse_x, signed short mouse_y)
+{
+    if (mouse_x >= CENTER_X + 20 - 5*px && 
+            mouse_x <= CENTER_X + 20 - 5*px + 125 + 10*px) {
+        if (mouse_y >= CENTER_Y - 175 && 
+                mouse_y <= CENTER_Y - 175 + 2*DEFAULT_FONT_SIZE) {
+            return 1;
+        }
+    }
+    // increase score button
+    if (mouse_x >= (CENTER_X - 130 - 5*px + 
+            97 + 35*px) && 
+        mouse_x <= (CENTER_X - 130 - 5*px + 
+            97 + 45*px)) {
+        if (mouse_y >= CENTER_Y - 50 &&
+                mouse_y <= CENTER_Y - 50 + 8*px) {
+            return 2;
+        }
+    }
+    // decrease score button
+    if (mouse_x >= (CENTER_X - 130 - 5*px + 
+            97 + 35*px) && 
+        mouse_x <= (CENTER_X - 130 - 5*px + 
+            97 + 45*px)) {
+        if (mouse_y >= CENTER_Y - 35 &&
+                mouse_y <= CENTER_Y - 35 + 8*px) {
+            return 3;
+        }
+    }
+    // start level increase
+    if (mouse_x >= (CENTER_X - 130 - 5*px + 
+            94 + 35*px) && 
+        mouse_x <= (CENTER_X - 130 - 5*px + 
+            94 + 45*px)) {
+        if (mouse_y >= CENTER_Y + 50 &&
+                mouse_y <= CENTER_Y + 50 + 8*px) {
+            return 4;
+        }
+    }
+    // start level decrease
+    if (mouse_x >= (CENTER_X - 130 - 5*px + 
+            94 + 35*px) && 
+        mouse_x <= (CENTER_X - 130 - 5*px + 
+            94 + 45*px)) {
+        if (mouse_y >= CENTER_Y + 65 &&
+                mouse_y <= CENTER_Y + 65 + 8*px) {
+            return 5;
+        }
+    }
+
+    return 0;
 }
 
 void vDrawHScoreScreen()

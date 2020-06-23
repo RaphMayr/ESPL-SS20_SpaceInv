@@ -356,8 +356,78 @@ void vDrawMotherShip(signed short pos_x, signed short pos_y)
     tumDrawFilledBox(pos_x + 8*px, pos_y - 2*px,
                     px, px, secondary_color);
     tumDrawFilledBox(pos_x + 10*px, pos_y - 2*px,
-                    px, px, secondary_color);
+                    px, px, secondary_color); 
+}
 
+void vDrawExplosion(signed short pos_x, signed short pos_y) {
+
+    unsigned int primary_color = Orange;
+    unsigned int secondary_color = Red;
+
+    // row 0
+    tumDrawFilledBox(pos_x, pos_y, px, px, primary_color);
     
+    tumDrawFilledBox(pos_x + 2*px, pos_y,     
+                     px, px, primary_color);
+    tumDrawFilledBox(pos_x + 4*px, pos_y,     
+                     px, px, primary_color);
+    tumDrawFilledBox(pos_x + 6*px, pos_y,     
+                     px, px, primary_color);
 
+    tumDrawFilledBox(pos_x + px, pos_y,     
+                     px, px, secondary_color);
+    tumDrawFilledBox(pos_x + 3*px, pos_y,     
+                     px, px, secondary_color);
+    tumDrawFilledBox(pos_x + 5*px, pos_y,     
+                     px, px, secondary_color);
+    tumDrawFilledBox(pos_x + 7*px, pos_y,     
+                     px, px, secondary_color);
+    
+    // row 1
+    tumDrawFilledBox(pos_x + px, pos_y - px,     
+                     px, px, primary_color);
+    tumDrawFilledBox(pos_x + 3*px, pos_y - px,     
+                     px, px, primary_color);
+    tumDrawFilledBox(pos_x + 4*px, pos_y - px,     
+                     px, px, primary_color);
+    tumDrawFilledBox(pos_x + 6*px, pos_y - px,     
+                     px, px, primary_color);
+    
+    tumDrawFilledBox(pos_x + 2*px, pos_y - px,     
+                     px, px, secondary_color);
+    tumDrawFilledBox(pos_x + 5*px, pos_y - px,     
+                     px, px, secondary_color);
+    
+    // row 2
+    tumDrawFilledBox(pos_x + 3*px, pos_y - 2*px,     
+                     px, px, primary_color);
+    tumDrawFilledBox(pos_x + 5*px, pos_y - 2*px,     
+                     px, px, primary_color);
+    
+    tumDrawFilledBox(pos_x + 4*px, pos_y - 2*px,     
+                     px, px, secondary_color);
+
+    // row -1
+    tumDrawFilledBox(pos_x + px, pos_y + px,     
+                     px, px, primary_color);
+    tumDrawFilledBox(pos_x + 3*px, pos_y + px,     
+                     px, px, primary_color);
+    tumDrawFilledBox(pos_x + 4*px, pos_y + px,     
+                     px, px, primary_color);
+    tumDrawFilledBox(pos_x + 6*px, pos_y + px,     
+                     px, px, primary_color);
+    
+    tumDrawFilledBox(pos_x + 2*px, pos_y + px,     
+                     px, px, secondary_color);
+    tumDrawFilledBox(pos_x + 5*px, pos_y + px,     
+                     px, px, secondary_color);
+
+    // row -2
+    tumDrawFilledBox(pos_x + 3*px, pos_y + 2*px,     
+                     px, px, primary_color);
+    tumDrawFilledBox(pos_x + 5*px, pos_y + 2*px,     
+                     px, px, primary_color);
+    
+    tumDrawFilledBox(pos_x + 4*px, pos_y + 2*px,     
+                     px, px, secondary_color);
 }

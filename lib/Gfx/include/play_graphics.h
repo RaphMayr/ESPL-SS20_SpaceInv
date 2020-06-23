@@ -64,5 +64,9 @@ void vDrawProjectile(signed short pos_x, signed short pos_y);
  * @brief draws Mothership
  */
 void vDrawMotherShip(signed short pos_x, signed short pos_y);
+/**
+ * @brief draws Explosion texture
+ */
+void vDrawExplosion(signed short pos_x, signed short pos_y);
 
 #endif

@@ -113,8 +113,9 @@ typedef struct scores{
  * 
  * done when first starting game or resetting from Main Menu
  */
-void vInit_playscreen(unsigned int level);
-/**
+void vInit_playscreen(unsigned int inf_lives,
+                      unsigned int score, unsigned int level);
+/** 
  * @brief draws playscreen with all its objects
  * 
  * @param Flags Signals from main task
@@ -124,7 +125,7 @@ void vInit_playscreen(unsigned int level);
  * @param ms indicates time gone since last Wake time
  * -> update positions
  */
-int vDraw_playscreen(unsigned int Flags[5], unsigned int ms);
+int vDraw_playscreen(unsigned int Flags[4], unsigned int ms);
 /**
  * @brief checks collisions of all screen objects
  * -> calls all other vCheckCollision_... functions
@@ -133,7 +134,7 @@ int vCheckCollisions();
 /**
  * @brief update Positions
  */
-void vUpdatePositions(unsigned int Flags[5], unsigned int ms);
+void vUpdatePositions(unsigned int Flags[4], unsigned int ms);
 /**
  * @brief draws all dynamic Items
  */
@@ -209,6 +210,12 @@ void vUpdate_player(unsigned int move_left,
                     unsigned int move_right,
                     unsigned int ms);
 /**
+ * @brief updates position of mothership with Async IO
+ */
+void vUpdate_mothership(signed int delta_X, char* bullet,
+                        char* state, char* difficulty,
+                        unsigned int ms);
+/**
  * @brief updates position of projectile
  * 
  * @param ms time interval for which position is to be updated
@@ -274,7 +281,15 @@ int vCheck_aliensleft();
 /**
  * @brief draws next level screen
  */
-void vDrawNextLevelScreen();
+void vDrawNextLevelScreen(unsigned int level);
 
+/**
+ * 
+ */
+void vCreateExplosion(signed short pos_x, signed short pos_y);
+/**
+ * 
+ */
+void vUpdate_explosion(unsigned int ms);
 
 #endif

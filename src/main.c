@@ -48,6 +48,8 @@ static SemaphoreHandle_t state_machine_signal = NULL;
 
 static QueueHandle_t next_state_queue = NULL;
 static QueueHandle_t reset_queue = NULL;
+static QueueHandle_t cheats_queue = NULL;
+static QueueHandle_t nextLvl_queue = NULL;
 
 typedef struct buttons_buffer {
     unsigned char buttons[SDL_NUM_SCANCODES];
@@ -259,6 +261,7 @@ void vStart_screen(void *pvParameters) {
 void vPlay_screen(void *pvParameters)
 {
     int next_state_pause = 2;
+    int next_state_play = 1;
     int next_state_mainmenu = 0;
 
     int ticks = 0;
@@ -279,7 +282,7 @@ void vPlay_screen(void *pvParameters)
      * Flag 2: shoot; Flag 3: trigger laser shot
      * Flag 4: reset Flag
      */
-    unsigned int Flags[5] = { 0 };
+    unsigned int Flags[4] = { 0 };
 
     TickType_t xLastWakeTime, prevWakeTime;
     xLastWakeTime = xTaskGetTickCount();
@@ -295,7 +298,7 @@ void vPlay_screen(void *pvParameters)
                     prevWakeTime = xLastWakeTime;
                     reset = 0;
                 }
-
+                
                 xGetButtonInput(); // Update global input
                 // currently in state 1
                 /* when escape is pressed send signal 
@@ -334,7 +337,7 @@ void vPlay_screen(void *pvParameters)
 
                     xSemaphoreGive(buttons.lock);
                 }   
-                if (ticks == 50) { // trigger lasershot
+                if (ticks == 100) { // trigger lasershot
                     Flags[3] = 1;
                     ticks = 0;
                 }
@@ -348,24 +351,26 @@ void vPlay_screen(void *pvParameters)
                 
                 xSemaphoreGive(ScreenLock);
 
-                if (game_over == 1) {
+                if (game_over == 1) {       // game over return to main menu
                     vTaskDelay(2000);
                     xSemaphoreGive(state_machine_signal);
                     xQueueSend(next_state_queue, 
                                 &next_state_mainmenu, 0);
                 }
-                if (game_over == 2) {
+                if (game_over == 2) {       // next level progress
+                    
+                    xSemaphoreGive(state_machine_signal);
+                    xQueueSend(next_state_queue,
+                                &next_state_play, 0);
                     vTaskDelay(2000);
                 }
                 
-
                 ticks++;
 
                 Flags[0] = 0;
                 Flags[1] = 0;
+                Flags[2] = 0;
                 Flags[3] = 0;
-                Flags[2] = 0;  
-                Flags[4] = 0;
 
                 prevWakeTime = xLastWakeTime;
             } 
@@ -422,6 +427,26 @@ void vCheatView(void *pvParameters) {
 
     int next_state_mainmenu = 0;
 
+    signed short mouse_X = 0;
+    signed short mouse_Y = 0;
+
+    int buttonState_Mouse = 0;
+    int lastState_Mouse = 0;
+    clock_t lastDebounceTime_Mouse;
+
+    clock_t timestamp;
+    double debounce_delay = 0.025;
+
+    int buttonValue = 0;
+
+    int trigger = 0;
+    int lastTrigger = 0;
+
+    int score = 0;
+    int level = 0;
+
+    int cheats[4] = { 0 };
+
     while(1) {
         if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
             pdTRUE) {
@@ -435,19 +460,88 @@ void vCheatView(void *pvParameters) {
 
                 if(buttons.buttons[KEYCODE(ESCAPE)]) {
                     xSemaphoreGive(buttons.lock);
+                    for (int i=0; i<4; i++) {
+                        xQueueSend(cheats_queue, &cheats[i], 0);
+                    }
                     xSemaphoreGive(state_machine_signal);
                     xQueueSend(next_state_queue, &next_state_mainmenu, 0);
                 }
                 xSemaphoreGive(buttons.lock);
             }
-        
+            // check button inputs
+            // get mouse coordinates 
+            mouse_X = tumEventGetMouseX();
+            mouse_Y = tumEventGetMouseY();
+
+            int reading_Mouse = tumEventGetMouseLeft();
+
+            if (reading_Mouse != lastState_Mouse) {
+                lastDebounceTime_Mouse = clock();
+            }
+            timestamp = clock();
+            if((((double) (timestamp - lastDebounceTime_Mouse)
+                    )/ CLOCKS_PER_SEC) > debounce_delay){
+                if (reading_Mouse != buttonState_Mouse){
+                    buttonState_Mouse = reading_Mouse;
+                        
+                    if (buttonState_Mouse == 1){
+                        buttonValue = vCheckCheatScreenInput(mouse_X, 
+                                                                mouse_Y);
+                        switch(buttonValue) {
+                            case 1:     // button triggered
+                                trigger = buttonValue;
+                                if (trigger == lastTrigger) {
+                                    trigger = 0;
+                                }
+                                else {
+                                    trigger = 1;
+                                }
+                                lastTrigger = trigger;
+                                cheats[1] = trigger;
+                                break;
+                            case 2:     // increase score
+                                score += 10;
+                                cheats[2] = score;
+                                break;
+                            case 3:     // decrease score
+                                if (score > 0) {
+                                    score -= 10;
+                                }
+                                cheats[2] = score;
+                                break;
+                            case 4:     // increase level
+                                level++;
+                                cheats[3] = level;
+                                break;
+                            case 5:
+                                if (level > 0) {
+                                    level--;
+                                }
+                                cheats[3] = level;
+                                break;
+                            default:
+                                break;
+                        }
+                        if ((trigger == 0) && (score == 0) 
+                                && (level == 0)) {
+                            cheats[0] = 0;
+                        }
+                        else {
+                            cheats[0] = 1;
+                        }
+                    }
+                }
+            }
+            lastState_Mouse = reading_Mouse;
+
             xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
-            vDrawCheatScreen();
+            vDrawCheatScreen(trigger,score,level);
                 
             vDrawFPS();
 
             xSemaphoreGive(ScreenLock);
+
         } 
     } 
 }
@@ -495,10 +589,16 @@ void vStateMachine(void *pvParameters) {
     vTaskSuspend(hscoreview_task);
 
     int state = 0;
+    int last_state = 0;
 
     int reset = 1;
 
-    const int state_change_period = 750;
+    int level = 1;
+
+    unsigned int Flags[4];
+    Flags[0] = 0;
+
+    const int state_change_period = 500;
     TickType_t last_change = xTaskGetTickCount();
 
     while(1) {
@@ -509,23 +609,63 @@ void vStateMachine(void *pvParameters) {
                     state_change_period) {
 
                 if (state == 0) {
+                    // MAIN MENU SCREEN 
                     vTaskSuspend(playscreen_task);
                     vTaskSuspend(pausescreen_task);
                     vTaskSuspend(cheatview_task);
                     vTaskSuspend(hscoreview_task);
                     vTaskResume(startscreen_task);
+
+                    level = 1;
+
                 }
                 if (state == 1) {
+                    // PLAY SCREEN 
                     vTaskSuspend(startscreen_task);
                     vTaskSuspend(pausescreen_task);
                     vTaskSuspend(cheatview_task);
                     vTaskSuspend(hscoreview_task); 
                     vTaskResume(playscreen_task);
-                    vInit_playscreen(1);
-                    xQueueSend(reset_queue, &reset, 0);
                     
+
+                    if (last_state == 1) {  // level progress init
+                        level++; 
+                        // cheat init for next level
+                        if (Flags[0]) {
+                            vInit_playscreen(Flags[1], 0, 
+                                             Flags[3] + level-1);
+                            vDrawNextLevelScreen(Flags[3] + level-1);
+                        }
+                        // normal init
+                        else {
+                            vInit_playscreen(0,0,level);
+                            vDrawNextLevelScreen(level);
+                        }
+                        
+                    }
+                    // starting game from main menu
+                    if (last_state == 0) {
+                        // receive cheats
+                        for (int i=0; i<4; i++) {
+                            xQueueReceive(cheats_queue, &Flags[i], 0);
+                        }
+                        // if cheats set initialize with cheat Flags
+                        if (Flags[0]) {
+                            vInit_playscreen(Flags[1], 
+                                        Flags[2], Flags[3]);
+                        }
+                        // else initialize with standard values
+                        else {
+                            vInit_playscreen(0,0,level);
+                        }
+                        
+                    }
+                    // bridge timegap for state change 
+                    // reset means here reset Tickcount
+                    xQueueSend(reset_queue, &reset, 0);
                 }
                 if (state == 2) {
+                    // PAUSE SCREEN 
                     vTaskSuspend(playscreen_task);
                     vTaskSuspend(startscreen_task);
                     vTaskSuspend(cheatview_task);
@@ -533,6 +673,7 @@ void vStateMachine(void *pvParameters) {
                     vTaskResume(pausescreen_task);
                 }
                 if (state == 3) {
+                    // CHEAT SCREEN
                     vTaskSuspend(playscreen_task);
                     vTaskSuspend(startscreen_task);
                     vTaskSuspend(pausescreen_task);
@@ -547,6 +688,7 @@ void vStateMachine(void *pvParameters) {
                     vTaskResume(hscoreview_task);
                 }
                 last_change = xTaskGetTickCount();
+                last_state = state;
             }
         }
     }
@@ -610,6 +752,16 @@ int main(int argc, char *argv[])
     reset_queue = xQueueCreate(1, sizeof(int));
     if (!reset_queue) {
         PRINT_ERROR("Failed to create reset queue");
+    }
+
+    cheats_queue = xQueueCreate(4, sizeof(int));
+    if (!cheats_queue) {
+        PRINT_ERROR("Failed to create cheats queue");
+    }
+
+    nextLvl_queue = xQueueCreate(1, sizeof(int));
+    if (!nextLvl_queue) {
+        PRINT_ERROR("Failed to create next level queue");
     }
 
     // Task Creation ##################################################
