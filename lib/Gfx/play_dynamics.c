@@ -62,7 +62,8 @@ Object explosion = { 0 };
 
 
 void vInit_playscreen(unsigned int inf_lives,
-                      unsigned int score, unsigned int level)
+                      unsigned int score, unsigned int level,
+                      unsigned int multiplayer)
 {
     // initialize gamedata
     if (level == 1) {
@@ -82,7 +83,12 @@ void vInit_playscreen(unsigned int inf_lives,
     // with cheats can be set to custom value
     // not yet influence at the moment on velocity
     gamedata.credit = 0;
-    gamedata.multiplayer = 0;
+    if (multiplayer) {
+        gamedata.multiplayer = 1;
+    }
+    else {
+        gamedata.multiplayer = 0;
+    }
     gamedata.level = level;
     gamedata.lock = xSemaphoreCreateMutex();
 
@@ -178,18 +184,35 @@ void vInit_playscreen(unsigned int inf_lives,
     }
 
     // initialize mothership
-    mothership.lock = xSemaphoreCreateMutex();
-    if (xSemaphoreTake(mothership.lock, portMAX_DELAY)) {
+    if (gamedata.multiplayer) {
+        mothership.lock = xSemaphoreCreateMutex();
+        if (xSemaphoreTake(mothership.lock, portMAX_DELAY)) {
 
-        mothership.x_coord = CENTER_X - 6*px;
-        mothership.y_coord = CENTER_Y - 175;
+            mothership.x_coord = CENTER_X - 6*px;
+            mothership.y_coord = CENTER_Y - 165;
 
-        mothership.f_x = mothership.x_coord;
-        mothership.f_y = mothership.y_coord;
+            mothership.f_x = mothership.x_coord;
+            mothership.f_y = mothership.y_coord;
 
-        mothership.state = 1;
+            mothership.state = 1;
 
-        xSemaphoreGive(player.lock);
+            xSemaphoreGive(player.lock);
+        }
+    }
+    else {
+        mothership.lock = xSemaphoreCreateMutex();
+        if (xSemaphoreTake(mothership.lock, portMAX_DELAY)) {
+
+            mothership.x_coord = 0;
+            mothership.y_coord = 0;
+
+            mothership.f_x = 0;
+            mothership.f_y = 0;
+
+            mothership.state = 0;
+
+            xSemaphoreGive(player.lock);
+        }
     }
 
     // initialize projectile
@@ -293,7 +316,7 @@ void vEmpty_aliens()
 
 int vDraw_playscreen(unsigned int Flags[4], unsigned int ms)
 {
-    signed int deltaX_player;
+    
     signed int prevX_player;
     char bullet, state, difficulty;
 
@@ -319,38 +342,23 @@ int vDraw_playscreen(unsigned int Flags[4], unsigned int ms)
         vDrawGameOver();
         return 1;
     }
-    if (xSemaphoreTake(player.lock, 0)) {
-
-        prevX_player = player.x_coord;
-        xSemaphoreGive(player.lock);
-    }
 
     vUpdatePositions(Flags, ms);    // update positions
-
-    if (xSemaphoreTake(player.lock, 0)) {
-
-        deltaX_player = player.x_coord - prevX_player;
-        xSemaphoreGive(player.lock);
-    }
-    if (xSemaphoreTake(projectile.lock, 0)) {
-
-        if (projectile.state) {
-            bullet = 'A';   // bullet is active
-        }
-        else {
-            bullet = 'P';   // no bullet is active
-        }
-        xSemaphoreGive(projectile.lock);
-    }
-    // communicate with mothership
-    // update mothership
-    vUpdate_mothership(deltaX_player, 
-                       &bullet, &state, &difficulty, ms);
 
     vDrawDynamicItems();        // draw dynamic items
     
     
     return 0;
+}
+
+int vGet_deltaX()
+{
+    signed int deltaX = 0;
+
+    deltaX = mothership.x_coord - player.x_coord;
+    
+    // return delta x between mothership and player
+    return deltaX;
 }
 
 int vCheckCollisions() 
@@ -448,6 +456,10 @@ void vUpdatePositions(unsigned int Flags[4], unsigned int ms)
         vUpdate_explosion(ms);
     }
     vUpdate_player(Flags[0], Flags[1], ms);
+
+    
+    //vUpdate_mothership(Flags[0], Flags[1], ms);
+    
 }
 
 void vDrawDynamicItems() 
@@ -463,8 +475,8 @@ void vDrawDynamicItems()
 
     vDrawScores();
 
-    vDrawMotherShip(CENTER_X - 7*px, CENTER_Y - 160);
-
+    
+    
     vDrawBunkers();
 
     if (xSemaphoreTake(laser.lock, 0)) {
@@ -492,6 +504,9 @@ void vDrawDynamicItems()
         vDrawPlayer(player.x_coord, player.y_coord);
 
         xSemaphoreGive(player.lock);
+    }
+    if (mothership.state) {
+        vDrawMotherShip(mothership.x_coord, mothership.y_coord);
     }
     
 }
@@ -985,35 +1000,27 @@ void vUpdate_player(unsigned int move_left,
     }
 }
 
-void vUpdate_mothership(signed int delta_X, char* bullet,
-                        char* state, char* difficulty,
+void vUpdate_mothership(unsigned int move_left, 
+                        unsigned int move_right,
                         unsigned int ms)
 {
-   
-    // communication with AI Binary
-    // INPUT: delta_X, bullet, state, Difficulty
-    // RETURN: move mothership left, right, or nothing
 
-    char move;
     unsigned int dx = 150;
     float update_interval = ms / 1000.0;
-
-    if (move == 'I') {      // increment mothership position
-        if (xSemaphoreTake(mothership.lock, 0)) {
-            projectile.f_x += dx * update_interval;
-            projectile.y_coord = round(projectile.f_x);
-
-            xSemaphoreGive(mothership.lock);
+    
+    if (move_left) {
+            // constrain left move with screen border
+        if (mothership.x_coord > LEFT_CONSTRAINT_X + 5) {
+            mothership.f_x -= dx * update_interval;
         }
     }
-    if (move == 'D') {      // decrement mothership position
-        if (xSemaphoreTake(mothership.lock, 0)) {
-            projectile.f_x -= dx * update_interval;
-            projectile.y_coord = round(projectile.f_x);
-
-            xSemaphoreGive(mothership.lock);
+    if (move_right) {
+            // constrain right move with screen border
+        if (mothership.x_coord < 507) { 
+            mothership.f_x += dx * update_interval;
         }
     }
+    mothership.x_coord = round(mothership.f_x);
 }
 
 void vUpdate_projectile(unsigned int ms) 

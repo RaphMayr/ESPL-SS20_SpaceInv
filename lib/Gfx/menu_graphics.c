@@ -26,7 +26,7 @@
 
 #define px 2
 
-void vDrawMainMenu(unsigned short state) {
+void vDrawMainMenu(unsigned short state, unsigned int multipl) {
     // coordinates of Gamescreen
     signed short x_startscreen = 100;
     signed short y_startscreen = 0;
@@ -58,14 +58,18 @@ void vDrawMainMenu(unsigned short state) {
 
     // coordinates and size of High-Score Button
     // Button Box
-    signed short w_hscorebutton = 60*px;
-    signed short h_hscorebutton = 15*px;
-    signed short x_hscorebutton = CENTER_X - w_hscorebutton / 2;
-    signed short y_hscorebutton = CENTER_Y + 100;
-    unsigned int color_hscorebutton = TUMBlue;
+    signed short w_multiplbutton = 60*px;
+    signed short h_multiplbutton = 15*px;
+    signed short x_multiplbutton = CENTER_X - w_multiplbutton / 2;
+    signed short y_multiplbutton = CENTER_Y + 100;
+    unsigned int color_multiplbutton = TUMBlue;
     // Button Text
-    static char hscoreBtn_str[50];
-    static int width_hscoreBtn_str = 0;
+    static char multiplBtn_str[50];
+    static int width_multiplBtn_str = 0;
+
+    // coordinates of multipl enabled/disabled
+    static char multipl_str[50];
+    static int width_multipl_str = 0;
 
     // quitting Text
     static char quit_str[50];
@@ -113,17 +117,30 @@ void vDrawMainMenu(unsigned short state) {
                 White);
 
     // displaying High-Score button with text 
-    sprintf(hscoreBtn_str, "HIGH SCORES");
+    sprintf(multiplBtn_str, "MULTIPLAYER");
 
-    tumDrawFilledBox(x_hscorebutton, y_hscorebutton,
-                        w_hscorebutton, h_hscorebutton,
-                        color_hscorebutton);
-    tumGetTextSize((char *) hscoreBtn_str,
-                    &width_hscoreBtn_str, NULL);
-    tumDrawText(hscoreBtn_str, 
-                CENTER_X - width_hscoreBtn_str / 2,
+    tumDrawFilledBox(x_multiplbutton - 5*px, y_multiplbutton,
+                        w_multiplbutton + 10*px, h_multiplbutton,
+                        color_multiplbutton);
+    tumGetTextSize((char *) multiplBtn_str,
+                    &width_multiplBtn_str, NULL);
+    tumDrawText(multiplBtn_str, 
+                CENTER_X - width_multiplBtn_str / 2,
                 CENTER_Y + 110 - DEFAULT_FONT_SIZE / 2,
                 White);
+
+    if (multipl) {
+        sprintf(multipl_str, "ENABLED");
+    }
+    else {
+        sprintf(multipl_str, "DISABLED");
+    }
+    tumGetTextSize((char *) multipl_str,
+                   &width_multipl_str, NULL);
+    tumDrawText(multipl_str,
+                CENTER_X - width_multipl_str / 2,
+                CENTER_Y + 140 - DEFAULT_FONT_SIZE / 2,
+                Green);
 
     sprintf(quit_str, "(Q) to exit game");
 
@@ -145,7 +162,7 @@ int vCheckMainMenuButtonInput(signed short mouse_X,
                     
         if (mouse_Y > CENTER_Y + 50 && 
             mouse_Y < CENTER_Y + 80) {
-                printf("CHEATS Btn pressed\n");
+
                 return 1;
         }
     }
@@ -155,7 +172,7 @@ int vCheckMainMenuButtonInput(signed short mouse_X,
                     
         if (mouse_Y > CENTER_Y + 100 && 
             mouse_Y < CENTER_Y + 130) {
-                printf("High-Scores Btn pressed\n");
+
                 return 2;
         }
     }
@@ -476,21 +493,21 @@ int vCheckCheatScreenInput(signed short mouse_x, signed short mouse_y)
     return 0;
 }
 
-void vDrawHScoreScreen()
+void vDrawmultiplScreen()
 {
     // coordinates of Gamescreen
-    signed short x_hscorescreen = 100;
-    signed short y_hscorescreen = 0;
-    signed short w_hscorescreen = 440;
-    signed short h_hscorescreen = 480;
+    signed short x_multiplscreen = 100;
+    signed short y_multiplscreen = 0;
+    signed short w_multiplscreen = 440;
+    signed short h_multiplscreen = 480;
 
     static char text[50];
     static int text_width = 0;
 
     // drawing Gamescreen
     tumDrawClear(White);
-    tumDrawFilledBox(x_hscorescreen, y_hscorescreen,
-                    w_hscorescreen, h_hscorescreen,
+    tumDrawFilledBox(x_multiplscreen, y_multiplscreen,
+                    w_multiplscreen, h_multiplscreen,
                     Black);
 
     sprintf(text, "High-SCORE SCREEN");
@@ -505,18 +522,18 @@ void vDrawHScoreScreen()
 void vDrawGameOver()
 {
     // coordinates of Gamescreen
-    signed short x_hscorescreen = 100;
-    signed short y_hscorescreen = 0;
-    signed short w_hscorescreen = 440;
-    signed short h_hscorescreen = 480;
+    signed short x_gamescreen = 100;
+    signed short y_gamescreen = 0;
+    signed short w_gamescreen = 440;
+    signed short h_gamescreen = 480;
 
     static char text[50];
     static int text_width = 0;
 
     // drawing Gamescreen
     tumDrawClear(White);
-    tumDrawFilledBox(x_hscorescreen, y_hscorescreen,
-                    w_hscorescreen, h_hscorescreen,
+    tumDrawFilledBox(x_gamescreen, y_gamescreen,
+                    w_gamescreen, h_gamescreen,
                     Black);
 
     sprintf(text, "GAME OVER");

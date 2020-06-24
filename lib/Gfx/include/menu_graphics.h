@@ -17,8 +17,9 @@
  * @brief draws welcome screen 
  * 
  * @param state enables start game text to blink 
+ * @param multipl indicates whether multiplayer mode is set(1) or not
  */ 
-void vDrawMainMenu(unsigned short state);
+void vDrawMainMenu(unsigned short state, unsigned int multipl);
 /**
  * @brief checks inputs for CHEATS Btn and High score Btn
  * 

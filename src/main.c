@@ -33,14 +33,21 @@
 #define CENTER_X SCREEN_WIDTH/2
 #define CENTER_Y SCREEN_HEIGHT/2
 
+#define UDP_BUFFER_SIZE 1000
+#define UDP_RECEIVE_PORT 1234
+#define UDP_TRANSMIT_PORT 1235
+
+aIO_handle_t udp_soc_one = NULL;
+aIO_handle_t udp_soc_two = NULL;
 
 static TaskHandle_t startscreen_task = NULL;
 static TaskHandle_t playscreen_task = NULL;
 static TaskHandle_t pausescreen_task = NULL;
 static TaskHandle_t cheatview_task = NULL;
-static TaskHandle_t hscoreview_task = NULL;
 static TaskHandle_t bufferswap = NULL;
 static TaskHandle_t statemachine = NULL;
+static TaskHandle_t send_task = NULL;
+static TaskHandle_t receive_task = NULL;
 
 static SemaphoreHandle_t DrawSignal = NULL;
 static SemaphoreHandle_t ScreenLock = NULL;
@@ -50,6 +57,15 @@ static QueueHandle_t next_state_queue = NULL;
 static QueueHandle_t reset_queue = NULL;
 static QueueHandle_t cheats_queue = NULL;
 static QueueHandle_t nextLvl_queue = NULL;
+static QueueHandle_t multipl_queue = NULL;
+
+typedef struct to_AI_data {
+    char delta_x[50];
+    char* attacking;
+    SemaphoreHandle_t lock;
+} to_AI_data_t;
+
+static to_AI_data_t to_AI = { 0 };
 
 typedef struct buttons_buffer {
     unsigned char buttons[SDL_NUM_SCANCODES];
@@ -177,7 +193,8 @@ void vStart_screen(void *pvParameters) {
 
     int next_state_play = 1;
     int next_state_cheats = 3;
-    int next_state_highscores = 4;
+
+    int multiplayer = 1;
 
     int button_pressed = 0;
 
@@ -192,8 +209,9 @@ void vStart_screen(void *pvParameters) {
                     -> enter game 
                 */
                 if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) { 
-                    if(buttons.buttons[KEYCODE(SPACE)]) {
+                    if(buttons.buttons[KEYCODE(SPACE)]) {   // start game
                         xSemaphoreGive(buttons.lock);
+                        xQueueSendToFront(multipl_queue, &multiplayer, 0);
                         xSemaphoreGive(state_machine_signal);
                         xQueueSend(next_state_queue, &next_state_play, 0);
                     }
@@ -225,9 +243,12 @@ void vStart_screen(void *pvParameters) {
                                             &next_state_cheats, 0);
                             }
                             if (button_pressed == 2) {
-                                xSemaphoreGive(state_machine_signal);
-                                xQueueSend(next_state_queue, 
-                                            &next_state_highscores, 0);
+                                if (multiplayer == 1) {
+                                    multiplayer = 0;
+                                }
+                                else {
+                                    multiplayer = 1;
+                                }
                             }
                         }
                     }
@@ -236,7 +257,7 @@ void vStart_screen(void *pvParameters) {
 
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
-                vDrawMainMenu(state);
+                vDrawMainMenu(state, multiplayer);
                 
                 vDrawFPS();
 
@@ -265,6 +286,10 @@ void vPlay_screen(void *pvParameters)
     int next_state_mainmenu = 0;
 
     int ticks = 0;
+
+    int delta_X = 0;
+    
+    char str_buffer[50];
 
     unsigned int game_over = 0;
 
@@ -340,13 +365,14 @@ void vPlay_screen(void *pvParameters)
                 if (ticks == 100) { // trigger lasershot
                     Flags[3] = 1;
                     ticks = 0;
+                    printf("%s\n", to_AI.delta_x);
                 }
                 
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
                 game_over = vDraw_playscreen(Flags, 
                                 xLastWakeTime - prevWakeTime);
-                
+
                 vDrawFPS();
                 
                 xSemaphoreGive(ScreenLock);
@@ -364,7 +390,18 @@ void vPlay_screen(void *pvParameters)
                                 &next_state_play, 0);
                     vTaskDelay(2000);
                 }
-                
+
+                // retrieve delta x data from Game (format: string)
+                // retrieve attacking/passive data from Game (string)
+                if (xSemaphoreTake(to_AI.lock, 0)) {
+                        
+                    delta_X = vGet_deltaX();
+                    
+                    sprintf(to_AI.delta_x, "%i", delta_X);
+                    
+                    xSemaphoreGive(to_AI.lock);
+                }
+
                 ticks++;
 
                 Flags[0] = 0;
@@ -546,47 +583,11 @@ void vCheatView(void *pvParameters) {
     } 
 }
 
-void vHScoreView(void *pvParameters) {
-
-    int next_state_mainmenu = 0;
-
-    while(1) {
-        if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
-            pdTRUE) {
-            xGetButtonInput(); // Update global input
-            // currently in state 4
-            /* when escape is pressed send signal 
-                to state machine to go to state 0
-                -> start screen
-            */ 
-            if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
-
-                if(buttons.buttons[KEYCODE(ESCAPE)]) {
-                    xSemaphoreGive(buttons.lock);
-                    xSemaphoreGive(state_machine_signal);
-                    xQueueSend(next_state_queue, &next_state_mainmenu, 0);
-                }
-                xSemaphoreGive(buttons.lock);
-            }
-        
-            xSemaphoreTake(ScreenLock, portMAX_DELAY);
-
-            vDrawHScoreScreen();
-                
-            vDrawFPS();
-
-            xSemaphoreGive(ScreenLock);
-        } 
-    }
-    
-}
-
 void vStateMachine(void *pvParameters) {
 
     vTaskSuspend(playscreen_task);
     vTaskSuspend(pausescreen_task);
     vTaskSuspend(cheatview_task);
-    vTaskSuspend(hscoreview_task);
 
     int state = 0;
     int last_state = 0;
@@ -594,6 +595,7 @@ void vStateMachine(void *pvParameters) {
     int reset = 1;
 
     int level = 1;
+    int multiplayer = 1;
 
     unsigned int Flags[4];
     Flags[0] = 0;
@@ -613,7 +615,6 @@ void vStateMachine(void *pvParameters) {
                     vTaskSuspend(playscreen_task);
                     vTaskSuspend(pausescreen_task);
                     vTaskSuspend(cheatview_task);
-                    vTaskSuspend(hscoreview_task);
                     vTaskResume(startscreen_task);
 
                     level = 1;
@@ -624,7 +625,6 @@ void vStateMachine(void *pvParameters) {
                     vTaskSuspend(startscreen_task);
                     vTaskSuspend(pausescreen_task);
                     vTaskSuspend(cheatview_task);
-                    vTaskSuspend(hscoreview_task); 
                     vTaskResume(playscreen_task);
                     
 
@@ -633,18 +633,21 @@ void vStateMachine(void *pvParameters) {
                         // cheat init for next level
                         if (Flags[0]) {
                             vInit_playscreen(Flags[1], 0, 
-                                             Flags[3] + level-1);
+                                             Flags[3] + level-1, 
+                                             multiplayer);
                             vDrawNextLevelScreen(Flags[3] + level-1);
                         }
                         // normal init
                         else {
-                            vInit_playscreen(0,0,level);
+                            vInit_playscreen(0,0,level, multiplayer);
                             vDrawNextLevelScreen(level);
                         }
                         
                     }
                     // starting game from main menu
                     if (last_state == 0) {
+                        // receive multiplayer signal
+                        xQueueReceive(multipl_queue, &multiplayer, 0);
                         // receive cheats
                         for (int i=0; i<4; i++) {
                             xQueueReceive(cheats_queue, &Flags[i], 0);
@@ -652,11 +655,11 @@ void vStateMachine(void *pvParameters) {
                         // if cheats set initialize with cheat Flags
                         if (Flags[0]) {
                             vInit_playscreen(Flags[1], 
-                                        Flags[2], Flags[3]);
+                                        Flags[2], Flags[3], multiplayer);
                         }
                         // else initialize with standard values
                         else {
-                            vInit_playscreen(0,0,level);
+                            vInit_playscreen(0,0,level, multiplayer);
                         }
                         
                     }
@@ -669,7 +672,6 @@ void vStateMachine(void *pvParameters) {
                     vTaskSuspend(playscreen_task);
                     vTaskSuspend(startscreen_task);
                     vTaskSuspend(cheatview_task);
-                    vTaskSuspend(hscoreview_task);
                     vTaskResume(pausescreen_task);
                 }
                 if (state == 3) {
@@ -677,15 +679,7 @@ void vStateMachine(void *pvParameters) {
                     vTaskSuspend(playscreen_task);
                     vTaskSuspend(startscreen_task);
                     vTaskSuspend(pausescreen_task);
-                    vTaskSuspend(hscoreview_task);
                     vTaskResume(cheatview_task);
-                }
-                if (state == 4) {
-                    vTaskSuspend(playscreen_task);
-                    vTaskSuspend(startscreen_task);
-                    vTaskSuspend(pausescreen_task);
-                    vTaskSuspend(cheatview_task);
-                    vTaskResume(hscoreview_task);
                 }
                 last_change = xTaskGetTickCount();
                 last_state = state;
@@ -694,6 +688,58 @@ void vStateMachine(void *pvParameters) {
     }
 }
 
+void vSendTask(void *pvParameters) 
+{
+    static char *test_str_1 = "UDP test 1";
+
+    static char *pause = "PAUSE";
+    static char *resume = "RESUME";
+
+    static char *attacking = "ATTACKING";
+    static char *passive = "PASSIVE";
+
+
+
+    int ticks = 0;
+
+    int pause_ = 0;
+    
+    while(1) {
+        // sending here
+        if (xSemaphoreTake(to_AI.lock, 0)) {
+
+            printf("%s\n", to_AI.delta_x);
+            aIOSocketPut(UDP, NULL, UDP_TRANSMIT_PORT, to_AI.delta_x,
+                strlen(to_AI.delta_x));
+
+            xSemaphoreGive(to_AI.lock);
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+    
+}
+
+void UDPHandlerOne(size_t read_size, char *buffer, void *args)
+{
+    // receiving here
+    printf("Received in first handler: %s\n", buffer);
+}
+
+void vReceiveTask(void *pvParameters)
+{
+    char *addr = NULL;
+
+    udp_soc_one = aIOOpenUDPSocket(NULL, UDP_RECEIVE_PORT, 
+                                   UDP_BUFFER_SIZE, 
+                                   UDPHandlerOne, NULL);
+    
+    printf("UDP socket opened on port %d\n", UDP_RECEIVE_PORT);
+
+    while(1) {
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
 
 // main function #########################################################
 
@@ -733,6 +779,11 @@ int main(int argc, char *argv[])
         goto err_screen_lock;
     }
 
+    to_AI.lock = xSemaphoreCreateMutex();
+    if (!to_AI.lock) {
+        PRINT_ERROR("Failed to create to AI data lock");
+    }
+ 
     DrawSignal = xSemaphoreCreateBinary();
     if (!DrawSignal) {
         PRINT_ERROR("Failed to create Draw Signal");
@@ -762,6 +813,11 @@ int main(int argc, char *argv[])
     nextLvl_queue = xQueueCreate(1, sizeof(int));
     if (!nextLvl_queue) {
         PRINT_ERROR("Failed to create next level queue");
+    }
+
+    multipl_queue = xQueueCreate(1, sizeof(int));
+    if (!multipl_queue) {
+        PRINT_ERROR("Failed to create multiplayer queue");
     }
 
     // Task Creation ##################################################
@@ -794,12 +850,16 @@ int main(int argc, char *argv[])
         
         PRINT_TASK_ERROR("cheatview_task");
     }
-    if (xTaskCreate(vHScoreView, "", mainGENERIC_STACK_SIZE * 2,
-                NULL, mainGENERIC_PRIORITY, &hscoreview_task) != pdPASS) {
-        
-        PRINT_TASK_ERROR("highscoreview_task");
-    }
+    if (xTaskCreate(vSendTask, "", mainGENERIC_STACK_SIZE * 2,
+                NULL, configMAX_PRIORITIES - 1, &send_task) != pdPASS) {
 
+        PRINT_TASK_ERROR("send_task");
+    }
+    if (xTaskCreate(vReceiveTask, "", mainGENERIC_STACK_SIZE * 2,
+                NULL, configMAX_PRIORITIES - 1, &receive_task) != pdPASS) {
+
+        PRINT_TASK_ERROR("send_task");
+    }
 
     // End of Task Creation ##############################################
 

@@ -114,7 +114,8 @@ typedef struct scores{
  * done when first starting game or resetting from Main Menu
  */
 void vInit_playscreen(unsigned int inf_lives,
-                      unsigned int score, unsigned int level);
+                      unsigned int score, unsigned int level,
+                      unsigned int multiplayer);
 /** 
  * @brief draws playscreen with all its objects
  * 
@@ -126,6 +127,10 @@ void vInit_playscreen(unsigned int inf_lives,
  * -> update positions
  */
 int vDraw_playscreen(unsigned int Flags[4], unsigned int ms);
+/**
+ * 
+ */
+int vGet_deltaX();
 /**
  * @brief checks collisions of all screen objects
  * -> calls all other vCheckCollision_... functions
@@ -212,8 +217,8 @@ void vUpdate_player(unsigned int move_left,
 /**
  * @brief updates position of mothership with Async IO
  */
-void vUpdate_mothership(signed int delta_X, char* bullet,
-                        char* state, char* difficulty,
+void vUpdate_mothership(unsigned int move_left,
+                        unsigned int move_right,
                         unsigned int ms);
 /**
  * @brief updates position of projectile
