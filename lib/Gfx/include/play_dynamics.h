@@ -99,7 +99,7 @@ typedef struct velocities {
  */
 typedef struct scores{
     unsigned int score1;
-    unsigned int score2;
+    unsigned int AI_diff;
     unsigned int hscore;
     unsigned int lives;
     unsigned int credit;
@@ -126,11 +126,23 @@ void vInit_playscreen(unsigned int inf_lives,
  * @param ms indicates time gone since last Wake time
  * -> update positions
  */
-int vDraw_playscreen(unsigned int Flags[4], unsigned int ms);
+int vDraw_playscreen(unsigned int Flags[5], unsigned int ms);
+/**
+ * 
+ */
+void vGive_movementData(char* move);
 /**
  * 
  */
 int vGet_deltaX();
+/**
+ * 
+ */
+int vGet_attacking();
+/**
+ * 
+ */
+int vGet_difficulty();
 /**
  * @brief checks collisions of all screen objects
  * -> calls all other vCheckCollision_... functions
@@ -139,7 +151,7 @@ int vCheckCollisions();
 /**
  * @brief update Positions
  */
-void vUpdatePositions(unsigned int Flags[4], unsigned int ms);
+void vUpdatePositions(unsigned int Flags[5], unsigned int ms);
 /**
  * @brief draws all dynamic Items
  */
@@ -164,6 +176,12 @@ int vCheckCollision_proj_bunker();
  * @return 1 when collision
  */
 int vCheckCollision_proj_upper();
+/**
+ * @brief checks collision of projectile and mothership
+ * 
+ * @return 1 when collision
+ */
+int vCheckCollision_proj_mothership();
 /**
  * @brief checks collision of laser and player
  * 
@@ -217,9 +235,7 @@ void vUpdate_player(unsigned int move_left,
 /**
  * @brief updates position of mothership with Async IO
  */
-void vUpdate_mothership(unsigned int move_left,
-                        unsigned int move_right,
-                        unsigned int ms);
+void vUpdate_mothership(unsigned int ms);
 /**
  * @brief updates position of projectile
  * 

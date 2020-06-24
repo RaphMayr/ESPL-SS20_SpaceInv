@@ -38,9 +38,6 @@ void vDrawStaticItems()
     static char score1[50];
     static int score1_width = 0;
 
-    static char score2[50];
-    static int score2_width = 0;
-
     static char hscore[50];
     static int hscore_width = 0;
 
@@ -66,20 +63,11 @@ void vDrawStaticItems()
                 y_playscreen,
                 Green);
 
-    sprintf(score2, "SCORE<2>");
-    tumGetTextSize((char *) score2,
-                    &score2_width, NULL);
-    tumDrawText(score2,
-                (x_playscreen + w_playscreen - 
-                score2_width - 20),
-                y_playscreen,
-                Green);
-
     sprintf(hscore, "HI-SCORE");
     tumGetTextSize((char *) hscore,
                     &hscore_width, NULL);
     tumDrawText(hscore,
-                CENTER_X - score2_width / 2,
+                CENTER_X - hscore_width / 2,
                 y_playscreen,
                 Green);
 

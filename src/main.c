@@ -60,12 +60,22 @@ static QueueHandle_t nextLvl_queue = NULL;
 static QueueHandle_t multipl_queue = NULL;
 
 typedef struct to_AI_data {
-    char delta_x[50];
-    char* attacking;
+    char delta_x[30];
+    char attacking[30];
+    char pause[30];
+    char difficulty[10];
     SemaphoreHandle_t lock;
 } to_AI_data_t;
 
 static to_AI_data_t to_AI = { 0 };
+
+typedef struct from_AI_data {
+    char move[30];
+
+    SemaphoreHandle_t lock;
+} from_AI_data_t;
+
+static from_AI_data_t from_AI = { 0 };
 
 typedef struct buttons_buffer {
     unsigned char buttons[SDL_NUM_SCANCODES];
@@ -288,14 +298,18 @@ void vPlay_screen(void *pvParameters)
     int ticks = 0;
 
     int delta_X = 0;
-    
-    char str_buffer[50];
+    int active = 0;
+    int difficulty = 0;
 
     unsigned int game_over = 0;
 
     int buttonState_W = 0;
     int lastState_W = 0;
     clock_t lastDebounceTime_W;
+
+    int buttonState_C = 0;
+    int lastState_C = 0;
+    clock_t lastDebounceTime_C;
 
     clock_t timestamp;
     double debounce_delay = 0.025;
@@ -305,9 +319,9 @@ void vPlay_screen(void *pvParameters)
      * Signals for play_dynamics.c;
      * Flag 0: move left; Flag 1: move right
      * Flag 2: shoot; Flag 3: trigger laser shot
-     * Flag 4: reset Flag
+     * Flag 4: toggle difficulty
      */
-    unsigned int Flags[4] = { 0 };
+    unsigned int Flags[5] = { 0 };
 
     TickType_t xLastWakeTime, prevWakeTime;
     xLastWakeTime = xTaskGetTickCount();
@@ -360,14 +374,36 @@ void vPlay_screen(void *pvParameters)
                     } 
                     lastState_W = reading_W;
 
+                    int reading_C = buttons.buttons[KEYCODE(C)];
+                    if (reading_C != lastState_C) {
+                        lastDebounceTime_C = clock();
+                    }
+                    timestamp = clock();
+                    if ((((double) (timestamp - lastDebounceTime_C)
+                            )/ CLOCKS_PER_SEC) > debounce_delay) {
+                        if (reading_C != buttonState_C) {
+                            buttonState_C = reading_C;
+                            if (buttonState_C) {
+                                Flags[4] = 1;
+                            }
+                        }
+                    }
+                    lastState_C = reading_C;
+
                     xSemaphoreGive(buttons.lock);
                 }   
                 if (ticks == 100) { // trigger lasershot
                     Flags[3] = 1;
                     ticks = 0;
-                    printf("%s\n", to_AI.delta_x);
                 }
-                
+
+                if (xSemaphoreTake(from_AI.lock, 0)) {
+                    
+                    vGive_movementData(from_AI.move);
+
+                    xSemaphoreGive(from_AI.lock);
+                }
+
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
                 game_over = vDraw_playscreen(Flags, 
@@ -396,8 +432,21 @@ void vPlay_screen(void *pvParameters)
                 if (xSemaphoreTake(to_AI.lock, 0)) {
                         
                     delta_X = vGet_deltaX();
+
+                    active = vGet_attacking();
+
+                    difficulty = vGet_difficulty();
                     
                     sprintf(to_AI.delta_x, "%i", delta_X);
+
+                    if (active) {
+                        sprintf(to_AI.attacking, "ATTACKING");
+                    }
+                    else {
+                        sprintf(to_AI.attacking, "PASSIVE");
+                    }
+
+                    sprintf(to_AI.difficulty, "D%i", difficulty);
                     
                     xSemaphoreGive(to_AI.lock);
                 }
@@ -408,6 +457,7 @@ void vPlay_screen(void *pvParameters)
                 Flags[1] = 0;
                 Flags[2] = 0;
                 Flags[3] = 0;
+                Flags[4] = 0;
 
                 prevWakeTime = xLastWakeTime;
             } 
@@ -690,31 +740,67 @@ void vStateMachine(void *pvParameters) {
 
 void vSendTask(void *pvParameters) 
 {
-    static char *test_str_1 = "UDP test 1";
+    char last_delta_x[30];
+    char last_attacking[30];
+    char last_difficulty[10];
+    char resume[] = "RESUME";
+    char pause[] = "PAUSE";
+    unsigned int paused = 0;
 
-    static char *pause = "PAUSE";
-    static char *resume = "RESUME";
-
-    static char *attacking = "ATTACKING";
-    static char *passive = "PASSIVE";
-
-
-
-    int ticks = 0;
-
-    int pause_ = 0;
-    
     while(1) {
         // sending here
         if (xSemaphoreTake(to_AI.lock, 0)) {
+            // just send if something changed
+            if (strcmp(last_delta_x, to_AI.delta_x) ||
+                    strcmp(last_attacking, to_AI.attacking) ||
+                    strcmp(last_difficulty, to_AI.difficulty)) {
+                
+                if (paused) {
+                    aIOSocketPut(UDP, NULL, UDP_TRANSMIT_PORT, 
+                                resume,
+                                strlen(resume));
+                }
 
-            printf("%s\n", to_AI.delta_x);
-            aIOSocketPut(UDP, NULL, UDP_TRANSMIT_PORT, to_AI.delta_x,
-                strlen(to_AI.delta_x));
+                if (strcmp(last_delta_x, to_AI.delta_x)) {
+                    // delta X
+                    aIOSocketPut(UDP, NULL, UDP_TRANSMIT_PORT, 
+                        to_AI.delta_x,
+                        strlen(to_AI.delta_x));
 
-            xSemaphoreGive(to_AI.lock);
+                    strcpy(last_delta_x, to_AI.delta_x);
+                }
+                if (strcmp(last_attacking, to_AI.attacking)) {
+                    // Attacking or not
+                    aIOSocketPut(UDP, NULL, UDP_TRANSMIT_PORT, 
+                        to_AI.attacking,
+                        strlen(to_AI.attacking));
+
+                    strcpy(last_attacking, to_AI.attacking);
+                }
+                if (strcmp(last_difficulty, to_AI.difficulty)) {
+                    // difficulty
+                    aIOSocketPut(UDP, NULL, UDP_TRANSMIT_PORT, 
+                        to_AI.difficulty,
+                        strlen(to_AI.difficulty));
+
+                    strcpy(last_difficulty, to_AI.difficulty);
+                }
+                paused = 0;
+                
+            }
+            // pause / resume
+            // -> send pause when no value changed
+            // -> resume when any value changes
+            else {
+                if (!paused) {
+                    paused = 1;
+                    aIOSocketPut(UDP, NULL, UDP_TRANSMIT_PORT,
+                         pause, strlen(pause));
+                }
+            }
+
+            xSemaphoreGive(to_AI.lock); 
         }
-        
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
     
@@ -722,13 +808,13 @@ void vSendTask(void *pvParameters)
 
 void UDPHandlerOne(size_t read_size, char *buffer, void *args)
 {
-    // receiving here
-    printf("Received in first handler: %s\n", buffer);
+
+    strcpy(from_AI.move, buffer);
+
 }
 
 void vReceiveTask(void *pvParameters)
 {
-    char *addr = NULL;
 
     udp_soc_one = aIOOpenUDPSocket(NULL, UDP_RECEIVE_PORT, 
                                    UDP_BUFFER_SIZE, 
@@ -737,7 +823,7 @@ void vReceiveTask(void *pvParameters)
     printf("UDP socket opened on port %d\n", UDP_RECEIVE_PORT);
 
     while(1) {
-        vTaskDelay(pdMS_TO_TICKS(500));
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
@@ -782,6 +868,11 @@ int main(int argc, char *argv[])
     to_AI.lock = xSemaphoreCreateMutex();
     if (!to_AI.lock) {
         PRINT_ERROR("Failed to create to AI data lock");
+    }
+
+    from_AI.lock = xSemaphoreCreateMutex();
+    if (!from_AI.lock) {
+        PRINT_ERROR("Failed to create from AI data lock");
     }
  
     DrawSignal = xSemaphoreCreateBinary();

@@ -67,7 +67,6 @@ void vInit_playscreen(unsigned int inf_lives,
 {
     // initialize gamedata
     if (level == 1) {
-        gamedata.score2 = 0;
         gamedata.hscore = 0;
         gamedata.score1 = 0;
     }
@@ -82,9 +81,11 @@ void vInit_playscreen(unsigned int inf_lives,
     // score normally set to 0 at beginning
     // with cheats can be set to custom value
     // not yet influence at the moment on velocity
+    gamedata.AI_diff = 0;
     gamedata.credit = 0;
     if (multiplayer) {
         gamedata.multiplayer = 1;
+        gamedata.AI_diff = 2;
     }
     else {
         gamedata.multiplayer = 0;
@@ -314,11 +315,27 @@ void vEmpty_aliens()
     }
 }
 
-int vDraw_playscreen(unsigned int Flags[4], unsigned int ms)
+void vGive_movementData(char* move) 
 {
-    
-    signed int prevX_player;
-    char bullet, state, difficulty;
+    char* increment = "INC";
+    char* decrement = "DEC";
+
+    if (!strcmp(increment, move)) {
+        mothership.blink = 1; // move right
+    }
+    else {
+        mothership.blink = 2;
+    }
+    if (!strcmp(decrement, move)) {
+        mothership.blink = 0;   // move left
+    }
+    else {
+        mothership.blink = 2;
+    }
+}
+
+int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
+{
 
     if (vCheck_aliensleft()) {     // when no aliens left progress to nxt lvl
         
@@ -334,6 +351,22 @@ int vDraw_playscreen(unsigned int Flags[4], unsigned int ms)
     
     if (Flags[3]) {     // periodic timer from main function
         vCreate_laser();
+    }
+
+    if (Flags[4]) {
+        switch(gamedata.AI_diff) {
+            case 1:
+                gamedata.AI_diff = 2;
+                break;
+            case 2:
+                gamedata.AI_diff = 3;
+                break;
+            case 3:
+                gamedata.AI_diff = 1;
+                break;
+            default:
+                break;
+        }
     }
     
 
@@ -359,6 +392,26 @@ int vGet_deltaX()
     
     // return delta x between mothership and player
     return deltaX;
+}
+
+int vGet_attacking()
+{
+    unsigned int attacking = 0;
+
+    if (projectile.state) {
+        attacking = 1;
+    }
+
+    return attacking;
+}
+
+int vGet_difficulty()
+{
+    unsigned int difficulty = 0;
+
+    difficulty = gamedata.AI_diff;
+
+    return difficulty;
 }
 
 int vCheckCollisions() 
@@ -404,6 +457,11 @@ int vCheckCollisions()
     
     if (vCheckCollision_proj_upper()) {
         vDelete_projectile();
+    }
+
+    if (vCheckCollision_proj_mothership()){
+        vDelete_projectile();
+        printf("mothership killed.\n");
     }
 
     if (vCheckCollision_laser_player()) {
@@ -458,7 +516,7 @@ void vUpdatePositions(unsigned int Flags[4], unsigned int ms)
     vUpdate_player(Flags[0], Flags[1], ms);
 
     
-    //vUpdate_mothership(Flags[0], Flags[1], ms);
+    vUpdate_mothership(ms);
     
 }
 
@@ -733,6 +791,27 @@ int vCheckCollision_proj_upper()
     return 0;
 }
 
+int vCheckCollision_proj_mothership()
+{
+    signed short hit_wall_x = mothership.x_coord;
+    signed short hit_wall_y = mothership.y_coord;
+    unsigned short width = 14*px;
+
+    if (projectile.state) {
+
+        if ((hit_wall_y >= projectile.y_coord) &&
+                (projectile.y_coord <= hit_wall_y - 5*px)) {
+
+            if ((hit_wall_x <= projectile.x_coord) &&
+                    (projectile.x_coord <= hit_wall_x + width)) {
+
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 int vCheckCollision_proj_bunker()
 {
     signed short hit_wall_left_x;
@@ -1000,21 +1079,19 @@ void vUpdate_player(unsigned int move_left,
     }
 }
 
-void vUpdate_mothership(unsigned int move_left, 
-                        unsigned int move_right,
-                        unsigned int ms)
+void vUpdate_mothership(unsigned int ms)
 {
 
     unsigned int dx = 150;
     float update_interval = ms / 1000.0;
     
-    if (move_left) {
+    if (!mothership.blink) {
             // constrain left move with screen border
         if (mothership.x_coord > LEFT_CONSTRAINT_X + 5) {
             mothership.f_x -= dx * update_interval;
         }
     }
-    if (move_right) {
+    if (mothership.blink) {
             // constrain right move with screen border
         if (mothership.x_coord < 507) { 
             mothership.f_x += dx * update_interval;
@@ -1085,8 +1162,14 @@ void vDrawScores()
 
     static char score1[50];
 
-    static char score2[50];
-    static int score2_width = 0;
+    static char AI_diff_str[50];
+    static int AI_diff_strlen = 0;
+
+    static char AI_toggle_str[50];
+    static int AI_toggle_str_width = 0;
+
+    static char AI_diff_val[50];
+    static int AI_diff_val_width = 0;
 
     static char hscore[50];
     static int hscore_width = 0;
@@ -1110,12 +1193,32 @@ void vDrawScores()
                     Green);
 
         if (gamedata.multiplayer) {
-            sprintf(score2, "%i", gamedata.score2);
-            tumGetTextSize((char *) score2, 
-                            &score2_width, NULL);
-            tumDrawText(score2, w_playscreen - score2_width - 30,
+            sprintf(AI_diff_str, "AI-DIFFICULTY");
+            tumGetTextSize((char *) AI_diff_str,
+                            &AI_diff_strlen, NULL);
+            tumDrawText(AI_diff_str,
+                        (x_playscreen + w_playscreen - 
+                        AI_diff_strlen - 20),
+                        y_playscreen,
+                        Red);
+            
+            sprintf(AI_toggle_str, "Toggle (C)");
+            tumGetTextSize((char *) AI_toggle_str,
+                            &AI_toggle_str_width, NULL);
+            tumDrawText(AI_toggle_str, 
+                        (x_playscreen + w_playscreen - 
+                        AI_diff_strlen + 15),
                         y_playscreen + 25,
-                        Green);
+                        Red);
+
+            sprintf(AI_diff_val, "D%i", gamedata.AI_diff);
+            tumGetTextSize((char *) AI_diff_val, 
+                            &AI_diff_val_width, NULL);
+            tumDrawText(AI_diff_val, 
+                        (x_playscreen + w_playscreen - 
+                        AI_diff_strlen - 20),
+                        y_playscreen + 25,
+                        Red);
         }
 
         if (gamedata.lives == 1000) {   // infinite value
