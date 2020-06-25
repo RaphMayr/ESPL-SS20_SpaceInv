@@ -67,7 +67,7 @@ void vInit_playscreen(unsigned int inf_lives,
 {
     // initialize gamedata
     if (level == 1) {
-        gamedata.hscore = 0;
+        
         gamedata.score1 = 0;
     }
     if (inf_lives == 1) {
@@ -334,6 +334,16 @@ void vGive_movementData(char* move)
     }
 }
 
+void vGive_highScore(unsigned int data)
+{
+    gamedata.hscore = data;
+}
+
+int vGet_highScore() 
+{
+    return gamedata.hscore;
+}
+
 int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
 {
 
@@ -343,6 +353,10 @@ int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
     }
 
     vDrawStaticItems(); 
+
+    if (gamedata.score1 > gamedata.hscore) {
+        gamedata.hscore = gamedata.score1;
+    }
 
     // projectile is initialized when shoot flag is set and not active
     if (Flags[2] && (projectile.state == 0)) {  
@@ -461,7 +475,6 @@ int vCheckCollisions()
 
     if (vCheckCollision_proj_mothership()){
         vDelete_projectile();
-        printf("mothership killed.\n");
     }
 
     if (vCheckCollision_laser_player()) {
@@ -502,7 +515,6 @@ void vUpdatePositions(unsigned int Flags[4], unsigned int ms)
 
 
     vUpdate_aliens(Flags, ms);
-
     
     if (projectile.state) {
         vUpdate_projectile(ms);
@@ -515,9 +527,9 @@ void vUpdatePositions(unsigned int Flags[4], unsigned int ms)
     }
     vUpdate_player(Flags[0], Flags[1], ms);
 
-    
-    vUpdate_mothership(ms);
-    
+    if (mothership.state) {
+        vUpdate_mothership(ms);
+    }
 }
 
 void vDrawDynamicItems() 
@@ -794,7 +806,7 @@ int vCheckCollision_proj_upper()
 int vCheckCollision_proj_mothership()
 {
     signed short hit_wall_x = mothership.x_coord;
-    signed short hit_wall_y = mothership.y_coord;
+    signed short hit_wall_y = mothership.y_coord + 2*px;
     unsigned short width = 14*px;
 
     if (projectile.state) {
@@ -804,6 +816,17 @@ int vCheckCollision_proj_mothership()
 
             if ((hit_wall_x <= projectile.x_coord) &&
                     (projectile.x_coord <= hit_wall_x + width)) {
+                
+                mothership.state = 0;
+                mothership.x_coord = 0;
+                mothership.y_coord = 0;
+                mothership.f_x = 0;
+                mothership.f_y = 0;
+
+                explosion.x_coord = projectile.x_coord - 3*px;
+                explosion.y_coord = projectile.y_coord;
+
+                explosion.state = 1;
 
                 return 1;
             }

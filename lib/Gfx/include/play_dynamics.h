@@ -144,6 +144,14 @@ int vGet_attacking();
  */
 int vGet_difficulty();
 /**
+ * 
+ */
+void vGive_highScore(unsigned int data);
+/**
+ * 
+ */
+int vGet_highScore();
+/**
  * @brief checks collisions of all screen objects
  * -> calls all other vCheckCollision_... functions
  */

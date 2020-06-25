@@ -205,6 +205,9 @@ void vStart_screen(void *pvParameters) {
     int next_state_cheats = 3;
 
     int multiplayer = 1;
+    char highscore[10];
+
+    int hscore = 0;
 
     int button_pressed = 0;
 
@@ -221,6 +224,18 @@ void vStart_screen(void *pvParameters) {
                 if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) { 
                     if(buttons.buttons[KEYCODE(SPACE)]) {   // start game
                         xSemaphoreGive(buttons.lock);
+                        // read h-score from file
+                        FILE *fp;
+                        fp = fopen("../src/hscore.txt", "r");
+                        while (fgets(highscore, 10, fp) != NULL) {
+                            printf("%s\n", highscore);
+                        }
+                        fclose(fp);
+
+                        hscore = strtol(highscore, NULL, 0);
+
+                        vGive_highScore(hscore);
+
                         xQueueSendToFront(multipl_queue, &multiplayer, 0);
                         xSemaphoreGive(state_machine_signal);
                         xQueueSend(next_state_queue, &next_state_play, 0);
@@ -483,6 +498,14 @@ void vPauseScreen(void *pvParameters) {
 
                     if(buttons.buttons[KEYCODE(ESCAPE)]) {
                         xSemaphoreGive(buttons.lock);
+                        // write high score to file 
+                        FILE *fp;
+                        fp = fopen("../src/hscore.txt", "w");
+                        if (fp != NULL) {
+                            fprintf(fp, "%i", vGet_highScore());
+                        }
+                        fclose(fp);
+
                         xSemaphoreGive(state_machine_signal);
                         xQueueSend(next_state_queue, &next_state_mainmenu, 0);
                     }
