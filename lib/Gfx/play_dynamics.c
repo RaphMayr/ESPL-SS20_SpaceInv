@@ -30,6 +30,9 @@
 #define RIGHT_CONSTRAINT_X 540
 
 #define MAX_X_VELO 80
+#define INC_VELO 2
+
+#define SCORE_THRESHOLD 1080
 
 #define SCORE_JELLY 30
 #define SCORE_CRAB 20
@@ -323,15 +326,15 @@ void vGive_movementData(char* move)
     if (!strcmp(increment, move)) {
         mothership.blink = 1; // move right
     }
-    else {
-        mothership.blink = 2;
-    }
-    if (!strcmp(decrement, move)) {
+    
+    else if (!strcmp(decrement, move)) {
         mothership.blink = 0;   // move left
     }
+
     else {
         mothership.blink = 2;
     }
+
 }
 
 void vGive_highScore(unsigned int data)
@@ -447,7 +450,7 @@ int vCheckCollisions()
         // increase speed alien
         if (xSemaphoreTake(alien_velo.lock, 0)) {
             if (alien_velo.dx <= MAX_X_VELO) {
-                alien_velo.dx += 5;
+                alien_velo.dx += INC_VELO;
                 printf("increasing velocity\n");
                 printf("x-velocity: %i\n", alien_velo.dx);
             }
@@ -1199,8 +1202,8 @@ void vDrawScores()
 
     static char lives[10];
     
-    static char credit[50];
-    static int credit_width = 0;
+    static char level[50];
+    static int level_width = 0;
 
     if (xSemaphoreTake(gamedata.lock, 0)) {
         sprintf(score1, "%i", gamedata.score1);
@@ -1261,11 +1264,11 @@ void vDrawScores()
 
             }
         }
-        sprintf(credit,"CREDIT  %i", gamedata.credit);
-        tumGetTextSize((char *) credit,
-                        &credit_width, NULL);
-        tumDrawText(credit, (x_playscreen + w_playscreen 
-                    - credit_width - 30),
+        sprintf(level,"LEVEL  %i", gamedata.level);
+        tumGetTextSize((char *) level,
+                        &level_width, NULL);
+        tumDrawText(level, (x_playscreen + w_playscreen 
+                    - level_width - 30),
                     y_playscreen + h_playscreen - 30,
                     Green);
 
@@ -1484,6 +1487,17 @@ void vIncrease_score(char alien_type)
     if (xSemaphoreTake(gamedata.lock, 0)) {
 
         gamedata.score1 += increase;
+
+        // every 1.5 levels worth of credits => new life
+        // 1.5 levels = apprx. 1080 credits
+        
+        gamedata.score2 += increase;
+        if (gamedata.score2 > SCORE_THRESHOLD) {
+            gamedata.score2 = 0;
+            if (gamedata.lives < 3) {
+                gamedata.lives++;
+            }
+        }
 
         xSemaphoreGive(gamedata.lock);
     }

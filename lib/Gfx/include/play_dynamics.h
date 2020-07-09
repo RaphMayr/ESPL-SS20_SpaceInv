@@ -87,7 +87,8 @@ typedef struct velocities {
  * @brief struct to represent game data
  * 
  * @param score1 Score of player 1
- * @param score2 Score of player 2
+ * @param score2 accumulating score 
+ * @param AI_diff difficulty of AI
  * @param hscore High Score of both players
  * 
  * @param lives remaining lives for player
@@ -99,6 +100,7 @@ typedef struct velocities {
  */
 typedef struct scores{
     unsigned int score1;
+    unsigned int score2;
     unsigned int AI_diff;
     unsigned int hscore;
     unsigned int lives;

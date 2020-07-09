@@ -228,7 +228,6 @@ void vStart_screen(void *pvParameters) {
                         FILE *fp;
                         fp = fopen("../src/hscore.txt", "r");
                         while (fgets(highscore, 10, fp) != NULL) {
-                            printf("%s\n", highscore);
                         }
                         fclose(fp);
 
@@ -236,9 +235,23 @@ void vStart_screen(void *pvParameters) {
 
                         vGive_highScore(hscore);
 
-                        xQueueSendToFront(multipl_queue, &multiplayer, 0);
-                        xSemaphoreGive(state_machine_signal);
-                        xQueueSend(next_state_queue, &next_state_play, 0);
+                        // check if binary is running when choosing mp
+                        if (multiplayer) {
+                            if (!system(
+                                "pidof -x space_invaders_opponent > /dev/null")) {
+                                xQueueSendToFront(multipl_queue, &multiplayer, 0);
+                                xSemaphoreGive(state_machine_signal);
+                                xQueueSend(next_state_queue, &next_state_play, 0);
+                            }
+                                
+                        }
+                        else {
+                            xQueueSendToFront(multipl_queue, &multiplayer, 0);
+                            xSemaphoreGive(state_machine_signal);
+                            xQueueSend(next_state_queue, &next_state_play, 0);
+                        }
+
+                        
                     }
                     xSemaphoreGive(buttons.lock);
                 }
@@ -831,9 +844,7 @@ void vSendTask(void *pvParameters)
 
 void UDPHandlerOne(size_t read_size, char *buffer, void *args)
 {
-
     strcpy(from_AI.move, buffer);
-
 }
 
 void vReceiveTask(void *pvParameters)
