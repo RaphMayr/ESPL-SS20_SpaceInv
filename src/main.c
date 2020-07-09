@@ -59,6 +59,7 @@ static QueueHandle_t cheats_queue = NULL;
 static QueueHandle_t nextLvl_queue = NULL;
 static QueueHandle_t multipl_queue = NULL;
 
+// struct to send data to AI
 typedef struct to_AI_data {
     char delta_x[30];
     char attacking[30];
@@ -69,6 +70,7 @@ typedef struct to_AI_data {
 
 static to_AI_data_t to_AI = { 0 };
 
+// struct to receive data from AI
 typedef struct from_AI_data {
     char move[30];
 
@@ -188,12 +190,16 @@ void vSwapBuffers(void *pvParameters)
 
 void vStart_screen(void *pvParameters) {
 
+    // state of screen -> blinking text
     unsigned short state = 0;
+    // counting variable
     int ticks = 0;
 
+    // mouse position 
     signed short mouse_X = 0;
     signed short mouse_Y = 0;
 
+    // debounce variables for mouse button
     int buttonState_Mouse = 0;
     int lastState_Mouse = 0;
     clock_t lastDebounceTime_Mouse;
@@ -201,14 +207,17 @@ void vStart_screen(void *pvParameters) {
     clock_t timestamp;
     double debounce_delay = 0.025;
 
+    // variables for state change
     int next_state_play = 1;
     int next_state_cheats = 3;
 
+    // multiplayer by default enabled
     int multiplayer = 1;
+    // array including high score (string)
     char highscore[10];
-
+    // high score (int)
     int hscore = 0;
-
+    // to determine which button on Main Menu was pressed
     int button_pressed = 0;
 
     while(1) {
@@ -228,16 +237,19 @@ void vStart_screen(void *pvParameters) {
                         FILE *fp;
                         fp = fopen("../src/hscore.txt", "r");
                         while (fgets(highscore, 10, fp) != NULL) {
-                            printf("%s\n", highscore);
                         }
                         fclose(fp);
 
                         hscore = strtol(highscore, NULL, 0);
 
+                        // give high score to play dynamics module
                         vGive_highScore(hscore);
 
+                        // send multiplayer status to state machine
                         xQueueSendToFront(multipl_queue, &multiplayer, 0);
+                        // wake state machine up
                         xSemaphoreGive(state_machine_signal);
+                        // signal state change to play-state
                         xQueueSend(next_state_queue, &next_state_play, 0);
                     }
                     xSemaphoreGive(buttons.lock);
@@ -247,6 +259,7 @@ void vStart_screen(void *pvParameters) {
                 mouse_X = tumEventGetMouseX();
                 mouse_Y = tumEventGetMouseY();
 
+                // debounce structure for mouse Button
                 int reading_Mouse = tumEventGetMouseLeft();
 
                 if (reading_Mouse != lastState_Mouse) {
@@ -257,17 +270,20 @@ void vStart_screen(void *pvParameters) {
                         )/ CLOCKS_PER_SEC) > debounce_delay){
                     if (reading_Mouse != buttonState_Mouse){
                         buttonState_Mouse = reading_Mouse;
-                         
+                        
                         if (buttonState_Mouse == 1){
-                                button_pressed = vCheckMainMenuButtonInput(
-                                                            mouse_X, 
-                                                            mouse_Y);
+                            // check if any button was pressed
+                            button_pressed = vCheckMainMenuButtonInput(
+                                                        mouse_X, 
+                                                        mouse_Y);
                             if (button_pressed == 1) {
+                                // trigger state change to cheats-screen
                                 xSemaphoreGive(state_machine_signal);
                                 xQueueSend(next_state_queue, 
                                             &next_state_cheats, 0);
                             }
                             if (button_pressed == 2) {
+                                // enable/disable multiplayer
                                 if (multiplayer == 1) {
                                     multiplayer = 0;
                                 }
@@ -282,6 +298,7 @@ void vStart_screen(void *pvParameters) {
 
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
+                // draw Main Menu screen (state is for blinking text)
                 vDrawMainMenu(state, multiplayer);
                 
                 vDrawFPS();
@@ -306,18 +323,23 @@ void vStart_screen(void *pvParameters) {
 
 void vPlay_screen(void *pvParameters)
 {
-    int next_state_pause = 2;
-    int next_state_play = 1;
+    // vars to send next state to state machine
     int next_state_mainmenu = 0;
+    int next_state_play = 1;
+    int next_state_pause = 2;
 
+    // counter variable
     int ticks = 0;
 
+    // local data to be sent to AI
     int delta_X = 0;
     int active = 0;
     int difficulty = 0;
 
+    // game over or level change
     unsigned int game_over = 0;
 
+    // debounce variables for W (shoot)
     int buttonState_W = 0;
     int lastState_W = 0;
     clock_t lastDebounceTime_W;
@@ -329,6 +351,7 @@ void vPlay_screen(void *pvParameters)
     clock_t timestamp;
     double debounce_delay = 0.025;
 
+    // variable to reset update delta when pausing screen
     int reset = 0;
     /** 
      * Signals for play_dynamics.c;
@@ -373,6 +396,7 @@ void vPlay_screen(void *pvParameters)
                     if (buttons.buttons[KEYCODE(D)]) {
                         Flags[1] = 1;
                     }
+                    // debounce structure for W (shoot)
                     int reading_W = buttons.buttons[KEYCODE(W)];
                     if (reading_W != lastState_W) {
                         lastDebounceTime_W = clock();
@@ -389,6 +413,7 @@ void vPlay_screen(void *pvParameters)
                     } 
                     lastState_W = reading_W;
 
+                    // debounce structure for C (change AI difficulty)
                     int reading_C = buttons.buttons[KEYCODE(C)];
                     if (reading_C != lastState_C) {
                         lastDebounceTime_C = clock();
@@ -411,7 +436,7 @@ void vPlay_screen(void *pvParameters)
                     Flags[3] = 1;
                     ticks = 0;
                 }
-
+                // give movement data from AI to play dynamics module
                 if (xSemaphoreTake(from_AI.lock, 0)) {
                     
                     vGive_movementData(from_AI.move);
@@ -420,7 +445,8 @@ void vPlay_screen(void *pvParameters)
                 }
 
                 xSemaphoreTake(ScreenLock, portMAX_DELAY);
-
+                
+                // call play dynamics module -> draw Playscreen
                 game_over = vDraw_playscreen(Flags, 
                                 xLastWakeTime - prevWakeTime);
 
@@ -445,7 +471,8 @@ void vPlay_screen(void *pvParameters)
                 // retrieve delta x data from Game (format: string)
                 // retrieve attacking/passive data from Game (string)
                 if (xSemaphoreTake(to_AI.lock, 0)) {
-                        
+                    
+                    // get data from play dynamics module 
                     delta_X = vGet_deltaX();
 
                     active = vGet_attacking();
@@ -495,7 +522,7 @@ void vPauseScreen(void *pvParameters) {
                     -> start screen
                 */ 
                 if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
-
+                    // return to main menu
                     if(buttons.buttons[KEYCODE(ESCAPE)]) {
                         xSemaphoreGive(buttons.lock);
                         // write high score to file 
@@ -535,11 +562,14 @@ void vPauseScreen(void *pvParameters) {
 
 void vCheatView(void *pvParameters) {
 
+    // can only return to main menu
     int next_state_mainmenu = 0;
 
+    // mouse position
     signed short mouse_X = 0;
     signed short mouse_Y = 0;
 
+    // debounce variables for mouse button
     int buttonState_Mouse = 0;
     int lastState_Mouse = 0;
     clock_t lastDebounceTime_Mouse;
@@ -549,12 +579,20 @@ void vCheatView(void *pvParameters) {
 
     int buttonValue = 0;
 
+    // variables for toggle button
     int trigger = 0;
     int lastTrigger = 0;
 
+    // variables to save score and level
     int score = 0;
     int level = 0;
 
+    /**
+     * cheats[0]: 1 any cheat activated
+     * [1]: 1 for infinite lives
+     * [2]: holds starting score
+     * [3]: holds starting level
+     */
     int cheats[4] = { 0 };
 
     while(1) {
@@ -570,6 +608,7 @@ void vCheatView(void *pvParameters) {
 
                 if(buttons.buttons[KEYCODE(ESCAPE)]) {
                     xSemaphoreGive(buttons.lock);
+                    // send cheat values to state machine 
                     for (int i=0; i<4; i++) {
                         xQueueSend(cheats_queue, &cheats[i], 0);
                     }
@@ -583,6 +622,7 @@ void vCheatView(void *pvParameters) {
             mouse_X = tumEventGetMouseX();
             mouse_Y = tumEventGetMouseY();
 
+            // debounce structure for mouse button
             int reading_Mouse = tumEventGetMouseLeft();
 
             if (reading_Mouse != lastState_Mouse) {
@@ -598,7 +638,7 @@ void vCheatView(void *pvParameters) {
                         buttonValue = vCheckCheatScreenInput(mouse_X, 
                                                                 mouse_Y);
                         switch(buttonValue) {
-                            case 1:     // button triggered
+                            case 1:     // inf. lives button triggered
                                 trigger = buttonValue;
                                 if (trigger == lastTrigger) {
                                     trigger = 0;
@@ -632,6 +672,7 @@ void vCheatView(void *pvParameters) {
                             default:
                                 break;
                         }
+                        // check if any cheat is activated
                         if ((trigger == 0) && (score == 0) 
                                 && (level == 0)) {
                             cheats[0] = 0;

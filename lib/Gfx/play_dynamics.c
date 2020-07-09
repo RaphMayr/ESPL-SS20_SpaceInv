@@ -445,23 +445,17 @@ int vCheckCollisions()
     if (vCheckCollision_proj_alien()) {
         
         // increase speed alien
-        if (xSemaphoreTake(alien_velo.lock, 0)) {
-            if (alien_velo.dx <= MAX_X_VELO) {
-                alien_velo.dx += 5;
-                printf("increasing velocity\n");
-                printf("x-velocity: %i\n", alien_velo.dx);
-            }
-            xSemaphoreGive(alien_velo.lock);
+        if (alien_velo.dx <= MAX_X_VELO) {
+            alien_velo.dx += 2;
+            printf("increasing velocity\n");
+            printf("x-velocity: %i\n", alien_velo.dx);
         }
-        if (xSemaphoreTake(explosion.lock, 0)) {
             
-            explosion.x_coord = projectile.x_coord - 3*px;
-            explosion.y_coord = projectile.y_coord;
+        explosion.x_coord = projectile.x_coord - 3*px;
+        explosion.y_coord = projectile.y_coord;
 
-            explosion.state = 1;
+        explosion.state = 1;
 
-            xSemaphoreGive(explosion.lock);
-        }
         vDelete_projectile();
     }
     
@@ -479,12 +473,9 @@ int vCheckCollisions()
 
     if (vCheckCollision_laser_player()) {
         vDelete_laser();
-        if (xSemaphoreTake(gamedata.lock, 0)) {
-            // when INF no change occurs
-            if (gamedata.lives != 1000) {   
-                gamedata.lives--;
-            }
-            xSemaphoreGive(gamedata.lock);
+        // when INF no change occurs
+        if (gamedata.lives != 1000) {   
+            gamedata.lives--;
         }
     }
     if (vCheckCollision_laser_proj()) {
