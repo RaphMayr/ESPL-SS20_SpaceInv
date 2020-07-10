@@ -128,7 +128,7 @@ void vInit_playscreen(unsigned int inf_lives,
  * @param ms indicates time gone since last Wake time
  * -> update positions
  */
-int vDraw_playscreen(unsigned int Flags[5], unsigned int ms);
+int vDraw_playscreen(unsigned int Flags[6], unsigned int ms);
 /**
  * 
  */
@@ -161,7 +161,7 @@ int vCheckCollisions();
 /**
  * @brief update Positions
  */
-void vUpdatePositions(unsigned int Flags[5], unsigned int ms);
+void vUpdatePositions(unsigned int Flags[6], unsigned int ms);
 /**
  * @brief draws all dynamic Items
  */
@@ -231,7 +231,7 @@ int vCheckCollision_alien_player();
  * @param state indicates whether to move left or right
  * @param ms time interval for which alien is updated
  */
-void vUpdate_aliens(unsigned int Flags[5], unsigned int ms);
+void vUpdate_aliens(unsigned int Flags[6], unsigned int ms);
 /**
  * @brief updates position of player
  * 
@@ -243,9 +243,13 @@ void vUpdate_player(unsigned int move_left,
                     unsigned int move_right,
                     unsigned int ms);
 /**
+ * @brief updates position of mothership in Singleplayer
+ */
+void vUpdate_mothership_sp(unsigned int ms);
+/**
  * @brief updates position of mothership with Async IO
  */
-void vUpdate_mothership(unsigned int ms);
+void vUpdate_mothership_mp(unsigned int ms);
 /**
  * @brief updates position of projectile
  * 
@@ -274,7 +278,14 @@ void vDrawAliens();
  */
 void vDrawBunkers();
 
-
+/**
+ * @brief creates mothership 
+ */
+void vCreate_mothership();
+/**
+ * @brief deletes mothership
+ */
+void vDelete_mothership();
 /**
  * @brief creates projectile when shoot is pressed
  * 

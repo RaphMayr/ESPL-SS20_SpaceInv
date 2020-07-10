@@ -323,7 +323,8 @@ void vPlay_screen(void *pvParameters)
     int next_state_play = 1;
     int next_state_mainmenu = 0;
 
-    int ticks = 0;
+    int ticks_laser = 0;
+    int ticks_mot = 0;
 
     int delta_X = 0;
     int active = 0;
@@ -348,8 +349,9 @@ void vPlay_screen(void *pvParameters)
      * Flag 0: move left; Flag 1: move right
      * Flag 2: shoot; Flag 3: trigger laser shot
      * Flag 4: toggle difficulty
+     * Flag 5: trigger Mothership flythrough
      */
-    unsigned int Flags[5] = { 0 };
+    unsigned int Flags[6] = { 0 };
 
     TickType_t xLastWakeTime, prevWakeTime;
     xLastWakeTime = xTaskGetTickCount();
@@ -420,9 +422,13 @@ void vPlay_screen(void *pvParameters)
 
                     xSemaphoreGive(buttons.lock);
                 }   
-                if (ticks == 100) { // trigger lasershot
+                if (ticks_laser == 100) { // trigger lasershot
                     Flags[3] = 1;
-                    ticks = 0;
+                    ticks_laser = 0;
+                }
+                if (ticks_mot == 1000) {
+                    Flags[5] = 1;
+                    ticks_mot = 0;
                 }
 
                 if (xSemaphoreTake(from_AI.lock, 0)) {
@@ -479,13 +485,15 @@ void vPlay_screen(void *pvParameters)
                     xSemaphoreGive(to_AI.lock);
                 }
 
-                ticks++;
+                ticks_laser++;
+                ticks_mot++;
 
                 Flags[0] = 0;
                 Flags[1] = 0;
                 Flags[2] = 0;
                 Flags[3] = 0;
                 Flags[4] = 0;
+                Flags[5] = 0;
 
                 prevWakeTime = xLastWakeTime;
             } 
@@ -837,7 +845,7 @@ void vSendTask(void *pvParameters)
 
             xSemaphoreGive(to_AI.lock); 
         }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
     
 }
@@ -857,7 +865,7 @@ void vReceiveTask(void *pvParameters)
     printf("UDP socket opened on port %d\n", UDP_RECEIVE_PORT);
 
     while(1) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 

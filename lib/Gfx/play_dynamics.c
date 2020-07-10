@@ -37,11 +37,13 @@
 #define SCORE_JELLY 30
 #define SCORE_CRAB 20
 #define SCORE_FRED 10
+#define SCORE_MOTHERSHIP 200
 
 #define DX_ALIEN 20     // initial x-velocity of aliens
 #define DY_ALIEN 2    // initial y-velocity of aliens
 
-#define DY_PROJECTILE 200   // y-velocity of projectile and laser
+#define DY_PROJECTILE 300   // y-velocity of projectile
+#define DY_LASER 200    // y-velocity of laser
 
 Object player = { 0 };
 
@@ -130,6 +132,7 @@ void vInit_playscreen(unsigned int inf_lives,
     // initialize alien velocities
     alien_velo.lock = xSemaphoreCreateMutex();
     if (xSemaphoreTake(alien_velo.lock, portMAX_DELAY)) {
+        // start velocity for each new lvl
         alien_velo.dx = DX_ALIEN + level*10;
         alien_velo.dy = DY_ALIEN;
 
@@ -198,9 +201,11 @@ void vInit_playscreen(unsigned int inf_lives,
             mothership.f_x = mothership.x_coord;
             mothership.f_y = mothership.y_coord;
 
+            mothership.type = 'M';
+
             mothership.state = 1;
 
-            xSemaphoreGive(player.lock);
+            xSemaphoreGive(mothership.lock);
         }
     }
     else {
@@ -213,9 +218,13 @@ void vInit_playscreen(unsigned int inf_lives,
             mothership.f_x = 0;
             mothership.f_y = 0;
 
+            mothership.type = 'M';
+
             mothership.state = 0;
 
-            xSemaphoreGive(player.lock);
+            mothership.blink = 1;
+
+            xSemaphoreGive(mothership.lock);
         }
     }
 
@@ -323,16 +332,18 @@ void vGive_movementData(char* move)
     char* increment = "INC";
     char* decrement = "DEC";
 
-    if (!strcmp(increment, move)) {
-        mothership.blink = 1; // move right
-    }
-    
-    else if (!strcmp(decrement, move)) {
-        mothership.blink = 0;   // move left
-    }
+    if (gamedata.multiplayer) {
+        if (!strcmp(increment, move)) {
+            mothership.blink = 1; // move right
+        }
+        
+        else if (!strcmp(decrement, move)) {
+            mothership.blink = 0;   // move left
+        }
 
-    else {
-        mothership.blink = 2;
+        else {
+            mothership.blink = 2;
+        }
     }
 
 }
@@ -347,7 +358,7 @@ int vGet_highScore()
     return gamedata.hscore;
 }
 
-int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
+int vDraw_playscreen(unsigned int Flags[6], unsigned int ms)
 {
 
     if (vCheck_aliensleft()) {     // when no aliens left progress to nxt lvl
@@ -368,7 +379,15 @@ int vDraw_playscreen(unsigned int Flags[5], unsigned int ms)
     
     if (Flags[3]) {     // periodic timer from main function
         vCreate_laser();
+        
     }
+
+    if (gamedata.multiplayer == 0) {
+        if (Flags[5]) {
+            vCreate_mothership();
+        }
+    }
+    
 
     if (Flags[4]) {
         switch(gamedata.AI_diff) {
@@ -405,7 +424,12 @@ int vGet_deltaX()
 {
     signed int deltaX = 0;
 
-    deltaX = mothership.x_coord - player.x_coord;
+    if (xSemaphoreTake(mothership.lock, 0)) {
+        deltaX = mothership.x_coord - player.x_coord;
+
+        xSemaphoreGive(mothership.lock);
+    }
+    
     
     // return delta x between mothership and player
     return deltaX;
@@ -507,7 +531,7 @@ int vCheckCollisions()
     return 0;
 }
 
-void vUpdatePositions(unsigned int Flags[4], unsigned int ms)
+void vUpdatePositions(unsigned int Flags[6], unsigned int ms)
 {
     /**
      * 1. update aliens positions
@@ -530,9 +554,14 @@ void vUpdatePositions(unsigned int Flags[4], unsigned int ms)
     }
     vUpdate_player(Flags[0], Flags[1], ms);
 
-    if (mothership.state) {
-        vUpdate_mothership(ms);
+    if (mothership.state && gamedata.multiplayer) {
+        vUpdate_mothership_mp(ms);
     }
+    
+    if (mothership.state && gamedata.multiplayer == 0) {
+        vUpdate_mothership_sp(ms);
+    }
+    
 }
 
 void vDrawDynamicItems() 
@@ -819,6 +848,9 @@ int vCheckCollision_proj_mothership()
 
             if ((hit_wall_x <= projectile.x_coord) &&
                     (projectile.x_coord <= hit_wall_x + width)) {
+
+                
+                vIncrease_score(mothership.type);
                 
                 mothership.state = 0;
                 mothership.x_coord = 0;
@@ -1028,7 +1060,7 @@ int vCheckCollision_proj_alien()
  * #####################################################
  * UPDATE POSITION FUNCTIONS
  */
-void vUpdate_aliens(unsigned int Flags[5], unsigned int ms) 
+void vUpdate_aliens(unsigned int Flags[6], unsigned int ms) 
 {
     unsigned int dy = alien_velo.dy;
     unsigned int dx = alien_velo.dx;
@@ -1105,7 +1137,41 @@ void vUpdate_player(unsigned int move_left,
     }
 }
 
-void vUpdate_mothership(unsigned int ms)
+void vUpdate_mothership_sp(unsigned int ms)
+{
+    unsigned int dx = 100;
+    float update_interval = ms / 1000.0;
+
+    // move right until constraint 
+    // move left until constraint 
+    // delete
+    if (mothership.blink) { // move right
+
+        if (mothership.x_coord < RIGHT_CONSTRAINT_X - 30) {
+
+            mothership.f_x += dx * update_interval;
+            mothership.x_coord = round(mothership.f_x);
+        }
+        else {
+            mothership.blink = 0;
+        }
+    }
+    else {
+        
+        if (mothership.x_coord > LEFT_CONSTRAINT_X + 5) {
+            
+            mothership.f_x -= dx * update_interval;
+            mothership.x_coord = round(mothership.f_x);
+        
+        }
+        else {
+            vDelete_mothership();
+        }
+    }
+    
+}
+
+void vUpdate_mothership_mp(unsigned int ms)
 {
 
     unsigned int dx = 150;
@@ -1113,13 +1179,13 @@ void vUpdate_mothership(unsigned int ms)
     
     if (!mothership.blink) {
             // constrain left move with screen border
-        if (mothership.x_coord > LEFT_CONSTRAINT_X + 5) {
+        if (mothership.x_coord > LEFT_CONSTRAINT_X + 50) {
             mothership.f_x -= dx * update_interval;
         }
     }
     if (mothership.blink) {
             // constrain right move with screen border
-        if (mothership.x_coord < 507) { 
+        if (mothership.x_coord < RIGHT_CONSTRAINT_X - 80) { 
             mothership.f_x += dx * update_interval;
         }
     }
@@ -1142,7 +1208,7 @@ void vUpdate_projectile(unsigned int ms)
 
 void vUpdate_laser(unsigned int ms)
 {
-    unsigned int dy = DY_PROJECTILE;
+    unsigned int dy = DY_LASER;
     float update_interval = ms / 1000.0;
 
     if (xSemaphoreTake(laser.lock, 0))  {
@@ -1366,6 +1432,31 @@ void vDrawBunkers()
  * #####################################################
  * CREATE DELETE FUNCTIONS
  */
+void vCreate_mothership() {
+    
+    mothership.x_coord = CENTER_X - 6*px;
+    mothership.y_coord = CENTER_Y - 165;
+
+    mothership.f_x = mothership.x_coord;
+    mothership.f_y = mothership.y_coord;
+
+    mothership.state = 1;
+
+    mothership.blink = 1;
+}
+
+void vDelete_mothership() 
+{
+    
+    mothership.x_coord = 0;
+    mothership.y_coord = 0;
+
+    mothership.f_x = 0;
+    mothership.f_y = 0;
+
+    mothership.state = 0;
+}
+
 void vCreate_projectile() {
     if (xSemaphoreTake(projectile.lock, 0)) {
 
@@ -1480,6 +1571,9 @@ void vIncrease_score(char alien_type)
             break;
         case 'F':
             increase = SCORE_FRED;
+            break;
+        case 'M':
+            increase = SCORE_MOTHERSHIP;
             break;
         default:
             break;
