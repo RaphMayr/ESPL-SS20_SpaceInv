@@ -1,5 +1,5 @@
 /**
- * @file play_dynamics.c
+ * @file play_dynamics.h
  * @author Raphael Mayr
  * @date 11 July 2020
  * @brief library to manage movements, scores, collision, creation

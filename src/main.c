@@ -1,3 +1,26 @@
+/**
+ * @file main.c
+ * @author Raphael Mayr
+ * @date 11 July 2020
+ * @brief main file for Space Invaders game
+ * 
+ * @verbatim
+    ----------------------------------------------------------------------
+    Copyright (C) Raphael Mayr, 2020
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    any later version.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   ----------------------------------------------------------------------
+ * @endverbatim
+ */
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -233,19 +256,24 @@ void vStart_screen(void *pvParameters) {
 
                         hscore = strtol(highscore, NULL, 0);
 
-                        vGive_highScore(hscore);
+                        // give hscore to play_dynamics.c
+                        vGive_highScore(hscore); 
 
-                        // check if binary is running when choosing mp
+                        // check if binary is running when choosing multiplayer
                         if (multiplayer) {
                             if (!system(
                                 "pidof -x space_invaders_opponent > /dev/null")) {
+                                // send multiplayer value to state machine
                                 xQueueSendToFront(multipl_queue, &multiplayer, 0);
+                                // wake up state machine
                                 xSemaphoreGive(state_machine_signal);
+                                // initiiate state change
                                 xQueueSend(next_state_queue, &next_state_play, 0);
                             }
                                 
                         }
                         else {
+                            // singleplayer -> no opponent binary reqired
                             xQueueSendToFront(multipl_queue, &multiplayer, 0);
                             xSemaphoreGive(state_machine_signal);
                             xQueueSend(next_state_queue, &next_state_play, 0);
@@ -260,6 +288,7 @@ void vStart_screen(void *pvParameters) {
                 mouse_X = tumEventGetMouseX();
                 mouse_Y = tumEventGetMouseY();
 
+                // debounce structure for mouse button
                 int reading_Mouse = tumEventGetMouseLeft();
 
                 if (reading_Mouse != lastState_Mouse) {
@@ -272,15 +301,20 @@ void vStart_screen(void *pvParameters) {
                         buttonState_Mouse = reading_Mouse;
                          
                         if (buttonState_Mouse == 1){
-                                button_pressed = vCheckMainMenuButtonInput(
-                                                            mouse_X, 
-                                                            mouse_Y);
+                            // check button clicks
+                            button_pressed = vCheckMainMenuButtonInput(
+                                                        mouse_X, 
+                                                        mouse_Y);
                             if (button_pressed == 1) {
+                                // cheat button pressed
+                                // change to cheat view
                                 xSemaphoreGive(state_machine_signal);
                                 xQueueSend(next_state_queue, 
                                             &next_state_cheats, 0);
                             }
                             if (button_pressed == 2) {
+                                // multiplayer button pressed
+                                // enable/disable multiplayer
                                 if (multiplayer == 1) {
                                     multiplayer = 0;
                                 }
@@ -301,6 +335,7 @@ void vStart_screen(void *pvParameters) {
 
                 xSemaphoreGive(ScreenLock);
 
+                // counter structure for blinking font
                 if (ticks == 50)    {
                     if (state == 1)   {
                         state = 0;
@@ -357,13 +392,14 @@ void vPlay_screen(void *pvParameters)
     xLastWakeTime = xTaskGetTickCount();
     prevWakeTime = xLastWakeTime;
 
-    
-
     while (1) {
         if (DrawSignal) {
             if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
                 pdTRUE) {
                 xLastWakeTime = xTaskGetTickCount();
+
+                // reset timedelta
+                // when resuming game or changing level
                 xQueueReceive(reset_queue, &reset, 0);
                 if (reset || game_over == 2) {
                     prevWakeTime = xLastWakeTime;
@@ -371,25 +407,26 @@ void vPlay_screen(void *pvParameters)
                 }
                 
                 xGetButtonInput(); // Update global input
-                // currently in state 1
-                /* when escape is pressed send signal 
-                    to state machine to go to state 2
-                    -> PAUSE screen
-                */ 
+                 
                 if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
 
                     if (buttons.buttons[KEYCODE(ESCAPE)]) {
                         xSemaphoreGive(buttons.lock);
+                        // change to PAUSE screen
                         xSemaphoreGive(state_machine_signal);
                         xQueueSend(next_state_queue, &next_state_pause, 0);
                     }
                     if (buttons.buttons[KEYCODE(A)]) {
+                        // signal to move left
                         Flags[0] = 1;
                     }
 
                     if (buttons.buttons[KEYCODE(D)]) {
+                        // signal to move right
                         Flags[1] = 1;
                     }
+
+                    // debounce structure for W
                     int reading_W = buttons.buttons[KEYCODE(W)];
                     if (reading_W != lastState_W) {
                         lastDebounceTime_W = clock();
@@ -400,12 +437,14 @@ void vPlay_screen(void *pvParameters)
                         if (reading_W != buttonState_W) {
                             buttonState_W = reading_W;
                             if (buttonState_W) {
+                                // signal to shoot
                                 Flags[2] = 1;
                             }
                         }
                     } 
                     lastState_W = reading_W;
 
+                    // debounce structure for C
                     int reading_C = buttons.buttons[KEYCODE(C)];
                     if (reading_C != lastState_C) {
                         lastDebounceTime_C = clock();
@@ -416,6 +455,8 @@ void vPlay_screen(void *pvParameters)
                         if (reading_C != buttonState_C) {
                             buttonState_C = reading_C;
                             if (buttonState_C) {
+                                // signal to change difficulty of AI
+                                // (multiplayer)
                                 Flags[4] = 1;
                             }
                         }
@@ -424,17 +465,22 @@ void vPlay_screen(void *pvParameters)
 
                     xSemaphoreGive(buttons.lock);
                 }   
-                if (ticks_laser == 100) { // trigger lasershot
+
+                // counting structure for triggering lasershot
+                if (ticks_laser == 100) { 
                     Flags[3] = 1;
                     ticks_laser = 0;
                 }
-                if (ticks_mot == 1000) {    // trigger mothership
+                // counting structure for mothership flythrough
+                // (singleplayer)
+                if (ticks_mot == 1000) {  
                     Flags[5] = 1;
                     ticks_mot = 0;
                 }
 
                 if (xSemaphoreTake(from_AI.lock, 0)) {
                     
+                    // give next move CMD of AI to play_dynamics.c 
                     vGive_movementData(from_AI.move);
 
                     xSemaphoreGive(from_AI.lock);
@@ -449,30 +495,35 @@ void vPlay_screen(void *pvParameters)
                 
                 xSemaphoreGive(ScreenLock);
 
-                if (game_over == 1) {       // game over return to main menu
+                // game over 
+                if (game_over == 1) {   
                     vTaskDelay(2000);
+                    // return to main menu
                     xSemaphoreGive(state_machine_signal);
                     xQueueSend(next_state_queue, 
                                 &next_state_mainmenu, 0);
                 }
-                if (game_over == 2) {       // next level progress
-                    
+                // progress to next level
+                if (game_over == 2) {    
+                    // return to play state with next level init
                     xSemaphoreGive(state_machine_signal);
                     xQueueSend(next_state_queue,
                                 &next_state_play, 0);
                     vTaskDelay(2000);
                 }
 
-                // retrieve delta x data from Game (format: string)
-                // retrieve attacking/passive data from Game (string)
                 if (xSemaphoreTake(to_AI.lock, 0)) {
-                        
+                    
+                    // get delta-x from play_dynamics.c
                     delta_X = vGet_deltaX();
 
+                    // get bullet status from play_dynamics.c
                     active = vGet_attacking();
 
+                    // get difficulty from play_dynamics.c
                     difficulty = vGet_difficulty();
                     
+                    // transform integer data to strings
                     sprintf(to_AI.delta_x, "%i", delta_X);
 
                     if (active) {
@@ -489,7 +540,8 @@ void vPlay_screen(void *pvParameters)
 
                 ticks_laser++;
                 ticks_mot++;
-
+                
+                // reset flags
                 Flags[0] = 0;
                 Flags[1] = 0;
                 Flags[2] = 0;
@@ -511,47 +563,44 @@ void vPauseScreen(void *pvParameters) {
     while(1) {
         if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
                 pdTRUE) {
-                xGetButtonInput(); // Update global input
-                // currently in state 2
-                /* when escape is pressed send signal 
-                    to state machine to go to state 0
-                    -> start screen
-                */ 
-                if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
 
-                    if(buttons.buttons[KEYCODE(ESCAPE)]) {
-                        xSemaphoreGive(buttons.lock);
-                        // write high score to file 
-                        FILE *fp;
-                        fp = fopen("../src/hscore.txt", "w");
-                        if (fp != NULL) {
-                            fprintf(fp, "%i", vGet_highScore());
-                        }
-                        fclose(fp);
-
-                        xSemaphoreGive(state_machine_signal);
-                        xQueueSend(next_state_queue, &next_state_mainmenu, 0);
-                    }
-                    /* when SPACE is pressed send signal
-                        to state machine to go to state 1
-                        -> resume playing
-                    */
-                    if(buttons.buttons[KEYCODE(SPACE)]) {
-                        xSemaphoreGive(buttons.lock);
-                        xSemaphoreGive(state_machine_signal);
-                        xQueueSend(next_state_queue, &next_state_play, 0);
-                    }
-                    xSemaphoreGive(buttons.lock);
-                }
-
-                xSemaphoreTake(ScreenLock, portMAX_DELAY);
-
-                vDrawPauseScreen();
+            xGetButtonInput(); // Update global input
+            
+            if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
                 
-                vDrawFPS();
+                // return to main menu
+                if(buttons.buttons[KEYCODE(ESCAPE)]) {
+                    xSemaphoreGive(buttons.lock);
+                    // write hi-score to file
+                    FILE *fp;
+                    fp = fopen("../src/hscore.txt", "w");
+                    if (fp != NULL) {
+                        // get hi-score from play_dynamics.c
+                        fprintf(fp, "%i", vGet_highScore());
+                    }
+                    fclose(fp); 
+                    // initiiate state change
+                    xSemaphoreGive(state_machine_signal);
+                    xQueueSend(next_state_queue, &next_state_mainmenu, 0);
+                }
+                
+                // resume playing
+                if(buttons.buttons[KEYCODE(SPACE)]) {
+                    xSemaphoreGive(buttons.lock);
+                    // initiiate state change
+                    xSemaphoreGive(state_machine_signal);
+                    xQueueSend(next_state_queue, &next_state_play, 0);
+                }
+                xSemaphoreGive(buttons.lock);
+            }
 
-                xSemaphoreGive(ScreenLock);
+            xSemaphoreTake(ScreenLock, portMAX_DELAY);
 
+            vDrawPauseScreen();
+            
+            vDrawFPS();
+
+            xSemaphoreGive(ScreenLock);
         } 
     }
 }
@@ -582,20 +631,20 @@ void vCheatView(void *pvParameters) {
 
     while(1) {
         if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
-            pdTRUE) {
+                pdTRUE) {
+            
             xGetButtonInput(); // Update global input
-            // currently in state 3
-            /* when escape is pressed send signal 
-                to state machine to go to state 0
-                -> start screen
-            */ 
+            
             if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
 
+                // return to main menu
                 if(buttons.buttons[KEYCODE(ESCAPE)]) {
                     xSemaphoreGive(buttons.lock);
+                    // send cheat values to state machine
                     for (int i=0; i<4; i++) {
                         xQueueSend(cheats_queue, &cheats[i], 0);
                     }
+                    // initiate state change
                     xSemaphoreGive(state_machine_signal);
                     xQueueSend(next_state_queue, &next_state_mainmenu, 0);
                 }
@@ -606,6 +655,7 @@ void vCheatView(void *pvParameters) {
             mouse_X = tumEventGetMouseX();
             mouse_Y = tumEventGetMouseY();
 
+            // debounce structure for mouse buttn
             int reading_Mouse = tumEventGetMouseLeft();
 
             if (reading_Mouse != lastState_Mouse) {
@@ -618,10 +668,11 @@ void vCheatView(void *pvParameters) {
                     buttonState_Mouse = reading_Mouse;
                         
                     if (buttonState_Mouse == 1){
+                        // check button clicks
                         buttonValue = vCheckCheatScreenInput(mouse_X, 
                                                                 mouse_Y);
                         switch(buttonValue) {
-                            case 1:     // button triggered
+                            case 1:     // infinite lives button triggered
                                 trigger = buttonValue;
                                 if (trigger == lastTrigger) {
                                     trigger = 0;
@@ -646,7 +697,7 @@ void vCheatView(void *pvParameters) {
                                 level++;
                                 cheats[3] = level;
                                 break;
-                            case 5:
+                            case 5:     // decrease level
                                 if (level > 0) {
                                     level--;
                                 }
@@ -655,10 +706,12 @@ void vCheatView(void *pvParameters) {
                             default:
                                 break;
                         }
+                        // no cheats active
                         if ((trigger == 0) && (score == 0) 
                                 && (level == 0)) {
                             cheats[0] = 0;
                         }
+                        // at least one cheat active
                         else {
                             cheats[0] = 1;
                         }
@@ -715,6 +768,7 @@ void vStateMachine(void *pvParameters) {
                     vTaskSuspend(cheatview_task);
                     vTaskResume(startscreen_task);
 
+                    // initial level
                     level = 1;
 
                 }
@@ -725,15 +779,15 @@ void vStateMachine(void *pvParameters) {
                     vTaskSuspend(cheatview_task);
                     vTaskResume(playscreen_task);
                     
-
-                    if (last_state == 1) {  // level progress init
+                    // level progress init
+                    if (last_state == 1) {  
                         level++; 
                         // cheat init for next level
                         if (Flags[0]) {
                             vInit_playscreen(Flags[1], 0, 
-                                             Flags[3] + level-1, 
+                                             Flags[3] + level, 
                                              multiplayer);
-                            vDrawNextLevelScreen(Flags[3] + level-1);
+                            vDrawNextLevelScreen(Flags[3] + level);
                         }
                         // normal init
                         else {
@@ -803,6 +857,7 @@ void vSendTask(void *pvParameters)
                     strcmp(last_attacking, to_AI.attacking) ||
                     strcmp(last_difficulty, to_AI.difficulty)) {
                 
+                // resume sending if paused
                 if (paused) {
                     aIOSocketPut(UDP, NULL, UDP_TRANSMIT_PORT, 
                                 resume,
@@ -855,8 +910,10 @@ void vSendTask(void *pvParameters)
 }
 
 void UDPHandlerOne(size_t read_size, char *buffer, void *args)
-{
-    strcpy(from_AI.move, buffer);
+{   
+    // receive handle
+    // copy buffer into from_AI.move var
+    strcpy(from_AI.move, buffer);     
 }
 
 void vReceiveTask(void *pvParameters)
@@ -865,8 +922,6 @@ void vReceiveTask(void *pvParameters)
     udp_soc_one = aIOOpenUDPSocket(NULL, UDP_RECEIVE_PORT, 
                                    UDP_BUFFER_SIZE, 
                                    UDPHandlerOne, NULL);
-    
-    printf("UDP socket opened on port %d\n", UDP_RECEIVE_PORT);
 
     while(1) {
         vTaskDelay(15);
@@ -914,11 +969,13 @@ int main(int argc, char *argv[])
     to_AI.lock = xSemaphoreCreateMutex();
     if (!to_AI.lock) {
         PRINT_ERROR("Failed to create to AI data lock");
+        goto err_toAI_lock;
     }
 
     from_AI.lock = xSemaphoreCreateMutex();
     if (!from_AI.lock) {
         PRINT_ERROR("Failed to create from AI data lock");
+        goto err_fromAI_lock;
     }
  
     DrawSignal = xSemaphoreCreateBinary();
@@ -930,6 +987,7 @@ int main(int argc, char *argv[])
     state_machine_signal = xSemaphoreCreateBinary();
     if (!state_machine_signal) {
         PRINT_ERROR("Failed to create State Machine Signal");
+        goto err_SM_signal;
     }
 
     next_state_queue = xQueueCreate(1, sizeof(int));
@@ -998,13 +1056,16 @@ int main(int argc, char *argv[])
         PRINT_TASK_ERROR("send_task");
     }
 
-    // End of Task Creation ##############################################
-
     vTaskStartScheduler();
 
     return EXIT_SUCCESS;
 
-
+err_SM_signal:
+    vSemaphoreDelete(from_AI.lock);
+err_fromAI_lock:
+    vSemaphoreDelete(to_AI.lock);
+err_toAI_lock:
+    vSemaphoreDelete(ScreenLock);
 err_screen_lock:
     vSemaphoreDelete(DrawSignal);
 err_draw_signal:
@@ -1020,8 +1081,6 @@ err_init_drawing:
 }
 
 // ###########################################
-
-
 // cppcheck-suppress unusedFunction
 __attribute__((unused)) void vMainQueueSendPassed(void)
 {
