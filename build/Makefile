@@ -111,6 +111,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named commit
+
+# Build rule for target.
+commit: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 commit
+.PHONY : commit
+
+# fast build rule for target.
+commit/fast:
+	$(MAKE) -f CMakeFiles/commit.dir/build.make CMakeFiles/commit.dir/build
+.PHONY : commit/fast
+
+#=============================================================================
 # Target rules for targets named FreeRTOS_Emulator
 
 # Build rule for target.
@@ -124,17 +137,17 @@ FreeRTOS_Emulator/fast:
 .PHONY : FreeRTOS_Emulator/fast
 
 #=============================================================================
-# Target rules for targets named commit
+# Target rules for targets named docs
 
 # Build rule for target.
-commit: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 commit
-.PHONY : commit
+docs: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 docs
+.PHONY : docs
 
 # fast build rule for target.
-commit/fast:
-	$(MAKE) -f CMakeFiles/commit.dir/build.make CMakeFiles/commit.dir/build
-.PHONY : commit/fast
+docs/fast:
+	$(MAKE) -f CMakeFiles/docs.dir/build.make CMakeFiles/docs.dir/build
+.PHONY : docs/fast
 
 lib/AsyncIO/AsyncIO.o: lib/AsyncIO/AsyncIO.c.o
 
@@ -629,9 +642,10 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
-	@echo "... rebuild_cache"
-	@echo "... FreeRTOS_Emulator"
 	@echo "... commit"
+	@echo "... FreeRTOS_Emulator"
+	@echo "... docs"
+	@echo "... rebuild_cache"
 	@echo "... lib/AsyncIO/AsyncIO.o"
 	@echo "... lib/AsyncIO/AsyncIO.i"
 	@echo "... lib/AsyncIO/AsyncIO.s"

@@ -60,6 +60,38 @@ CMAKE_SOURCE_DIR = /home/rtos-sim/ESPL-SS20_SpaceInv
 CMAKE_BINARY_DIR = /home/rtos-sim/ESPL-SS20_SpaceInv/build
 
 #=============================================================================
+# Target rules for target CMakeFiles/commit.dir
+
+# All Build rule for target.
+CMakeFiles/commit.dir/all:
+	$(MAKE) -f CMakeFiles/commit.dir/build.make CMakeFiles/commit.dir/depend
+	$(MAKE) -f CMakeFiles/commit.dir/build.make CMakeFiles/commit.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=20 "Built target commit"
+.PHONY : CMakeFiles/commit.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/commit.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles 1
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/commit.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles 0
+.PHONY : CMakeFiles/commit.dir/rule
+
+# Convenience name for target.
+commit: CMakeFiles/commit.dir/rule
+
+.PHONY : commit
+
+# clean rule for target.
+CMakeFiles/commit.dir/clean:
+	$(MAKE) -f CMakeFiles/commit.dir/build.make CMakeFiles/commit.dir/clean
+.PHONY : CMakeFiles/commit.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/commit.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
 # Target rules for target CMakeFiles/FreeRTOS_Emulator.dir
 
 # All Build rule for target.
@@ -97,34 +129,34 @@ clean: CMakeFiles/FreeRTOS_Emulator.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/commit.dir
+# Target rules for target CMakeFiles/docs.dir
 
 # All Build rule for target.
-CMakeFiles/commit.dir/all:
-	$(MAKE) -f CMakeFiles/commit.dir/build.make CMakeFiles/commit.dir/depend
-	$(MAKE) -f CMakeFiles/commit.dir/build.make CMakeFiles/commit.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=20 "Built target commit"
-.PHONY : CMakeFiles/commit.dir/all
+CMakeFiles/docs.dir/all:
+	$(MAKE) -f CMakeFiles/docs.dir/build.make CMakeFiles/docs.dir/depend
+	$(MAKE) -f CMakeFiles/docs.dir/build.make CMakeFiles/docs.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles --progress-num=21 "Built target docs"
+.PHONY : CMakeFiles/docs.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/commit.dir/rule: cmake_check_build_system
+CMakeFiles/docs.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles 1
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/commit.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/docs.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/rtos-sim/ESPL-SS20_SpaceInv/build/CMakeFiles 0
-.PHONY : CMakeFiles/commit.dir/rule
+.PHONY : CMakeFiles/docs.dir/rule
 
 # Convenience name for target.
-commit: CMakeFiles/commit.dir/rule
+docs: CMakeFiles/docs.dir/rule
 
-.PHONY : commit
-
-# clean rule for target.
-CMakeFiles/commit.dir/clean:
-	$(MAKE) -f CMakeFiles/commit.dir/build.make CMakeFiles/commit.dir/clean
-.PHONY : CMakeFiles/commit.dir/clean
+.PHONY : docs
 
 # clean rule for target.
-clean: CMakeFiles/commit.dir/clean
+CMakeFiles/docs.dir/clean:
+	$(MAKE) -f CMakeFiles/docs.dir/build.make CMakeFiles/docs.dir/clean
+.PHONY : CMakeFiles/docs.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/docs.dir/clean
 
 .PHONY : clean
 
