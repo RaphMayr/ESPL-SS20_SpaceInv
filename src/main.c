@@ -279,7 +279,6 @@ void vStart_screen(void *pvParameters) {
                             xQueueSend(next_state_queue, &next_state_play, 0);
                         }
 
-                        
                     }
                     xSemaphoreGive(buttons.lock);
                 }
