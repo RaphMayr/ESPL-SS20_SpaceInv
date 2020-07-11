@@ -357,6 +357,8 @@ void vPlay_screen(void *pvParameters)
     xLastWakeTime = xTaskGetTickCount();
     prevWakeTime = xLastWakeTime;
 
+    
+
     while (1) {
         if (DrawSignal) {
             if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
@@ -426,7 +428,7 @@ void vPlay_screen(void *pvParameters)
                     Flags[3] = 1;
                     ticks_laser = 0;
                 }
-                if (ticks_mot == 1000) {
+                if (ticks_mot == 1000) {    // trigger mothership
                     Flags[5] = 1;
                     ticks_mot = 0;
                 }
@@ -683,6 +685,8 @@ void vStateMachine(void *pvParameters) {
     vTaskSuspend(pausescreen_task);
     vTaskSuspend(cheatview_task);
 
+    vCreate_mutexes();
+
     int state = 0;
     int last_state = 0;
 
@@ -845,7 +849,7 @@ void vSendTask(void *pvParameters)
 
             xSemaphoreGive(to_AI.lock); 
         }
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(15);
     }
     
 }
@@ -865,7 +869,7 @@ void vReceiveTask(void *pvParameters)
     printf("UDP socket opened on port %d\n", UDP_RECEIVE_PORT);
 
     while(1) {
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(15);
     }
 }
 

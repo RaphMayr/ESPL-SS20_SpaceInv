@@ -1,3 +1,26 @@
+/**
+ * @file play_dynamics.c
+ * @author Raphael Mayr
+ * @date 11 July 2020
+ * @brief library to manage movements, scores, collision, creation
+ * of objects.
+ * 
+ * @verbatim
+    ----------------------------------------------------------------------
+    Copyright (C) Raphael Mayr, 2020
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    any later version.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   ----------------------------------------------------------------------
+ * @endverbatim
+ */
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,11 +62,11 @@
 #define SCORE_FRED 10
 #define SCORE_MOTHERSHIP 200
 
-#define DX_ALIEN 20     // initial x-velocity of aliens
-#define DY_ALIEN 2    // initial y-velocity of aliens
+#define DX_ALIEN 20
+#define DY_ALIEN 2
 
-#define DY_PROJECTILE 300   // y-velocity of projectile
-#define DY_LASER 200    // y-velocity of laser
+#define DY_PROJECTILE 300
+#define DY_LASER 200 
 
 Object player = { 0 };
 
@@ -65,54 +88,77 @@ Data gamedata = { 0 };
 
 Object explosion = { 0 };
 
+void vCreate_mutexes()
+{   
+    // create locks
+    gamedata.lock = xSemaphoreCreateMutex();
+    for (int row=0; row < 5; row++) {
+        for (int col=0; col < 10; col++) {
+            // fine grained locking
+            aliens[row][col].lock = xSemaphoreCreateMutex();
+        }
+    }
+    alien_velo.lock = xSemaphoreCreateMutex();
+    upper_wall.lock = xSemaphoreCreateMutex();
+    lower_wall.lock = xSemaphoreCreateMutex();
+    player.lock = xSemaphoreCreateMutex();
+    mothership.lock = xSemaphoreCreateMutex();
+    projectile.lock = xSemaphoreCreateMutex();
+    laser.lock = xSemaphoreCreateMutex();
+    explosion.lock = xSemaphoreCreateMutex();
+
+    for (int row=0; row<4; row++) {
+        bunkers[row].lock = xSemaphoreCreateMutex();
+    }
+}
 
 void vInit_playscreen(unsigned int inf_lives,
                       unsigned int score, unsigned int level,
                       unsigned int multiplayer)
 {
-    // initialize gamedata
+    // set score when starting game
     if (level == 1) {
-        
         gamedata.score1 = 0;
     }
+    // cheat infinite lives set
     if (inf_lives == 1) {
         // value doesn't get changed when 1000
         gamedata.lives = 1000;  // "INF" gets displayed
     }
     else {
-        // normal case 3 lives
+        // cheat not set
         gamedata.lives = 3;
     }
-    // score normally set to 0 at beginning
-    // with cheats can be set to custom value
-    // not yet influence at the moment on velocity
-    gamedata.AI_diff = 0;
-    gamedata.credit = 0;
+
+    // multiplayer or not 
+    // -> AI or not
     if (multiplayer) {
         gamedata.multiplayer = 1;
         gamedata.AI_diff = 2;
     }
     else {
         gamedata.multiplayer = 0;
+        gamedata.AI_diff = 0;
     }
-    gamedata.level = level;
-    gamedata.lock = xSemaphoreCreateMutex();
+    gamedata.level = level;     // set level
+        // create lock
 
-    // initialize aliens
+    // initialize alien matrix
     for (int row=0; row < 5; row++) {
         for (int col=0; col < 10; col++) {
-            aliens[row][col].lock = xSemaphoreCreateMutex();
+            // fine grained locking
             if (xSemaphoreTake(aliens[row][col].lock, portMAX_DELAY)) {
-                
-
+                // one row Jellies
                 if (row == 0) {
                     aliens[row][col].type = 'J';
                     aliens[row][col].x_coord = 151 + col*30;
                 }
+                // two rows Crabs 
                 if (row == 1 || row == 2) {
                     aliens[row][col].type = 'C';
                     aliens[row][col].x_coord = 149 + col*31;
                 }
+                // two rows Freds
                 if (row == 3 || row == 4) {
                     aliens[row][col].type = 'F';
                     aliens[row][col].x_coord = 132 + col*34;
@@ -123,26 +169,25 @@ void vInit_playscreen(unsigned int inf_lives,
                 aliens[row][col].f_x = aliens[row][col].x_coord;
                 aliens[row][col].f_y = aliens[row][col].y_coord;
 
-                aliens[row][col].state = 1;
+                aliens[row][col].state = 1; // sets aliens active
                 xSemaphoreGive(aliens[row][col].lock);
             }
         }
     }
     
     // initialize alien velocities
-    alien_velo.lock = xSemaphoreCreateMutex();
     if (xSemaphoreTake(alien_velo.lock, portMAX_DELAY)) {
-        // start velocity for each new lvl
-        alien_velo.dx = DX_ALIEN + level*10;
+        // velocity increases for level count
+        alien_velo.dx = DX_ALIEN + level*10; 
         alien_velo.dy = DY_ALIEN;
 
+        // initially moving right
         alien_velo.move_right = 1;
 
         xSemaphoreGive(alien_velo.lock);
     }
 
     // initialize upper wall
-    upper_wall.lock = xSemaphoreCreateMutex();
     if (xSemaphoreTake(upper_wall.lock, portMAX_DELAY)) {
 
         upper_wall.x_coord = 100;
@@ -159,7 +204,6 @@ void vInit_playscreen(unsigned int inf_lives,
     }
 
     // initialize lower wall
-    lower_wall.lock = xSemaphoreCreateMutex();
     if (xSemaphoreTake(lower_wall.lock, portMAX_DELAY)) {
 
         lower_wall.x_coord = 100;
@@ -176,7 +220,6 @@ void vInit_playscreen(unsigned int inf_lives,
     }
 
     // initialize player
-    player.lock = xSemaphoreCreateMutex();
     if (xSemaphoreTake(player.lock, portMAX_DELAY)) {
 
         player.x_coord = CENTER_X - 6*px;
@@ -192,7 +235,6 @@ void vInit_playscreen(unsigned int inf_lives,
 
     // initialize mothership
     if (gamedata.multiplayer) {
-        mothership.lock = xSemaphoreCreateMutex();
         if (xSemaphoreTake(mothership.lock, portMAX_DELAY)) {
 
             mothership.x_coord = CENTER_X - 6*px;
@@ -209,9 +251,8 @@ void vInit_playscreen(unsigned int inf_lives,
         }
     }
     else {
-        mothership.lock = xSemaphoreCreateMutex();
         if (xSemaphoreTake(mothership.lock, portMAX_DELAY)) {
-
+            // NULL coordinates
             mothership.x_coord = 0;
             mothership.y_coord = 0;
 
@@ -229,9 +270,8 @@ void vInit_playscreen(unsigned int inf_lives,
     }
 
     // initialize projectile
-    projectile.lock = xSemaphoreCreateMutex();
     if (xSemaphoreTake(projectile.lock, portMAX_DELAY)) {
-
+        // NULL coordinates
         projectile.x_coord = 0;
         projectile.y_coord = 0;
 
@@ -244,9 +284,8 @@ void vInit_playscreen(unsigned int inf_lives,
     }
 
     // initialize laser
-    laser.lock = xSemaphoreCreateMutex();
     if (xSemaphoreTake(laser.lock, portMAX_DELAY)) {
-
+        // NULL coordinates
         laser.x_coord = 0;
         laser.y_coord = 0;
 
@@ -258,9 +297,8 @@ void vInit_playscreen(unsigned int inf_lives,
         xSemaphoreGive(laser.lock);
     }
     // initialize explosion
-    explosion.lock = xSemaphoreCreateMutex();
     if (xSemaphoreTake(explosion.lock, portMAX_DELAY)) {
-
+        // NULL coordinates
         explosion.x_coord = 0;
         explosion.y_coord = 0;
 
@@ -275,7 +313,6 @@ void vInit_playscreen(unsigned int inf_lives,
     }
     // initialize bunkers
     for (int row=0; row<4; row++) {
-        bunkers[row].lock = xSemaphoreCreateMutex();
         if (xSemaphoreTake(bunkers[row].lock, portMAX_DELAY)) {
 
             bunkers[row].x_coord = 145 + 100*row;
@@ -283,15 +320,12 @@ void vInit_playscreen(unsigned int inf_lives,
 
             bunkers[row].low_coll_left_x = bunkers[row].x_coord;
             bunkers[row].low_coll_left_y = bunkers[row].y_coord + 13*px;
-            bunkers[row].low_coll_left = 0;
 
             bunkers[row].low_coll_mid_x = bunkers[row].x_coord + 8*px;
             bunkers[row].low_coll_mid_y = bunkers[row].y_coord + 9*px;
-            bunkers[row].low_coll_mid = 0;
 
             bunkers[row].low_coll_right_x = bunkers[row].x_coord + 16*px;
             bunkers[row].low_coll_right_y = bunkers[row].y_coord + 13*px;
-            bunkers[row].low_coll_right = 0;
 
             bunkers[row].upp_coll_left_x = bunkers[row].x_coord;
             bunkers[row].upp_coll_left_y = bunkers[row].y_coord;
@@ -308,21 +342,13 @@ void vInit_playscreen(unsigned int inf_lives,
     }
 }
 
-/**
- * vPlay();
- * 1. draw Static Items -
- * 2. check Collisions -
- * 3. update Positions -
- * 4. draw Dynamic Items -
- */
+// set all aliens inactive; for testing purposes only
 void vEmpty_aliens()
 {
     for (int row=0; row < 5; row++) {
         for (int col=0; col < 10; col++) {
 
             aliens[row][col].state = 0;
-
-
         }
     }
 }
@@ -350,26 +376,43 @@ void vGive_movementData(char* move)
 
 void vGive_highScore(unsigned int data)
 {
-    gamedata.hscore = data;
+    if (xSemaphoreTake(gamedata.lock, 0)) {
+        gamedata.hscore = data;
+
+        xSemaphoreGive(gamedata.lock);
+    }  
 }
 
 int vGet_highScore() 
 {
-    return gamedata.hscore;
+    unsigned int hscore;
+    if (xSemaphoreTake(gamedata.lock, 0)) {
+        hscore = gamedata.hscore;
+
+        xSemaphoreGive(gamedata.lock);
+    }
+    return hscore;
 }
 
-int vDraw_playscreen(unsigned int Flags[6], unsigned int ms)
+int vDraw_playscreen(unsigned int *Flags, unsigned int ms)
 {
 
-    if (vCheck_aliensleft()) {     // when no aliens left progress to nxt lvl
-        
+    if (vCheck_aliensleft()) {     
+        // when no aliens left progress to nxt lvl
         return 2;
     }
 
-    vDrawStaticItems(); 
+    // draw all items that don't move
+    vDrawStaticItems();
 
-    if (gamedata.score1 > gamedata.hscore) {
-        gamedata.hscore = gamedata.score1;
+    // count Hi-Score up with score 
+    // when it gets greater than current hscore
+    if (xSemaphoreTake(gamedata.lock, 0)) {
+        if (gamedata.score1 > gamedata.hscore) {
+            gamedata.hscore = gamedata.score1;
+        }
+
+        xSemaphoreGive(gamedata.lock);
     }
 
     // projectile is initialized when shoot flag is set and not active
@@ -388,20 +431,25 @@ int vDraw_playscreen(unsigned int Flags[6], unsigned int ms)
         }
     }
     
-
-    if (Flags[4]) {
-        switch(gamedata.AI_diff) {
-            case 1:
-                gamedata.AI_diff = 2;
-                break;
-            case 2:
-                gamedata.AI_diff = 3;
-                break;
-            case 3:
-                gamedata.AI_diff = 1;
-                break;
-            default:
-                break;
+    // adjust difficulty (only a multiplayer functionality)
+    if (gamedata.multiplayer) {
+        if (Flags[4]) {
+            if (xSemaphoreTake(gamedata.lock, 0)) {
+                switch(gamedata.AI_diff) {
+                    case 1:
+                        gamedata.AI_diff = 2;
+                        break;
+                    case 2:
+                        gamedata.AI_diff = 3;
+                        break;
+                    case 3:
+                        gamedata.AI_diff = 1;
+                        break;
+                    default:
+                        break;
+                }
+                xSemaphoreGive(gamedata.lock);
+            }
         }
     }
     
@@ -457,17 +505,6 @@ int vGet_difficulty()
 
 int vCheckCollisions() 
 {
-    /**
-     * 1. check collision projectile and alien -
-     * 2. check collision projectile and bunker - 
-     * 3. check collision projectile and upper line -
-     * 4. check collision laser and player -
-     * 5. check collision laser and projectile - 
-     * 3. check collision laser and bunker -
-     * 4. check collision laser and bottom line -
-     * 5. check collision alien and player line -
-     */
-
     
     if (vCheckCollision_proj_alien()) {
         
@@ -531,7 +568,7 @@ int vCheckCollisions()
     return 0;
 }
 
-void vUpdatePositions(unsigned int Flags[6], unsigned int ms)
+    void vUpdatePositions(unsigned int *Flags, unsigned int ms)
 {
     /**
      * 1. update aliens positions
@@ -541,7 +578,7 @@ void vUpdatePositions(unsigned int Flags[6], unsigned int ms)
      */
 
 
-    vUpdate_aliens(Flags, ms);
+    vUpdate_aliens(ms);
     
     if (projectile.state) {
         vUpdate_projectile(ms);
@@ -922,7 +959,6 @@ int vCheckCollision_proj_bunker()
                             }
                             else {
                                 bunkers[row].low_coll_left_y -= 4*px;
-                                bunkers[row].low_coll_left++;
                             }
 
                             xSemaphoreGive(bunkers[row].lock);
@@ -950,7 +986,6 @@ int vCheckCollision_proj_bunker()
                             }
                             else {
                                 bunkers[row].low_coll_mid_y -= 4*px;
-                                bunkers[row].low_coll_mid++;
                             }
 
                             xSemaphoreGive(bunkers[row].lock);
@@ -978,7 +1013,6 @@ int vCheckCollision_proj_bunker()
                             }
                             else {
                                 bunkers[row].low_coll_right_y -= 4*px;
-                                bunkers[row].low_coll_right++;
                             }
 
                             xSemaphoreGive(bunkers[row].lock);
@@ -1060,7 +1094,7 @@ int vCheckCollision_proj_alien()
  * #####################################################
  * UPDATE POSITION FUNCTIONS
  */
-void vUpdate_aliens(unsigned int Flags[6], unsigned int ms) 
+void vUpdate_aliens(unsigned int ms) 
 {
     unsigned int dy = alien_velo.dy;
     unsigned int dx = alien_velo.dx;
