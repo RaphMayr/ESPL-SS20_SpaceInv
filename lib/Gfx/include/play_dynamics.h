@@ -166,10 +166,12 @@ void vCreate_mutexes();
  * @param score inits playscreen with current score
  * @param level inits playscreen with current level
  * @param multiplayer multiplayer set(1) or not(0)
+ * @param cheat_set at least one cheat set: 1
  */
 void vInit_playscreen(unsigned int inf_lives,
                       unsigned int score, unsigned int level,
-                      unsigned int multiplayer);
+                      unsigned int multiplayer,
+                      unsigned int cheat_set);
 /** 
  * @brief draws playscreen with all its objects
  * 

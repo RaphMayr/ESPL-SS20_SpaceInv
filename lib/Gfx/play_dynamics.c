@@ -114,22 +114,33 @@ void vCreate_mutexes()
 
 void vInit_playscreen(unsigned int inf_lives,
                       unsigned int score, unsigned int level,
-                      unsigned int multiplayer)
+                      unsigned int multiplayer,
+                      unsigned int cheat_set)
 {
-    // set score when starting game
+    // start game
     if (level == 1) {
         gamedata.score1 = 0;
-    }
-    // cheat infinite lives set
-    if (inf_lives == 1) {
-        // value doesn't get changed when 1000
-        gamedata.lives = 1000;  // "INF" gets displayed
+    
+        // cheat infinite lives set
+        if (inf_lives == 1) {
+            // value doesn't get changed when 1000
+            gamedata.lives = 1000;  // "INF" gets displayed
+        }
+        else {
+            // cheat not set
+            gamedata.lives = 3;
+        }
     }
     else {
-        // cheat not set
-        gamedata.lives = 3;
+        if (cheat_set) {
+            if (inf_lives) {
+                gamedata.lives = 1000;
+            }
+            else {
+                gamedata.lives = 3;
+            }
+        }
     }
-
     // multiplayer or not 
     // -> AI or not
     if (multiplayer) {
@@ -140,8 +151,7 @@ void vInit_playscreen(unsigned int inf_lives,
         gamedata.multiplayer = 0;
         gamedata.AI_diff = 0;
     }
-    gamedata.level = level;     // set level
-        // create lock
+    gamedata.level = level;    // set level
 
     // initialize alien matrix
     for (int row=0; row < 5; row++) {

@@ -785,13 +785,15 @@ void vStateMachine(void *pvParameters) {
                         // cheat init for next level
                         if (Flags[0]) {
                             vInit_playscreen(Flags[1], 0, 
-                                             Flags[3] + level, 
-                                             multiplayer);
-                            vDrawNextLevelScreen(Flags[3] + level);
+                                             Flags[3] + level-1, 
+                                             multiplayer,
+                                             1);
+                            vDrawNextLevelScreen(Flags[3] + level-1);
                         }
                         // normal init
                         else {
-                            vInit_playscreen(0,0,level, multiplayer);
+                            vInit_playscreen(0,0,level, multiplayer,
+                                            0);
                             vDrawNextLevelScreen(level);
                         }
                         
@@ -807,11 +809,13 @@ void vStateMachine(void *pvParameters) {
                         // if cheats set initialize with cheat Flags
                         if (Flags[0]) {
                             vInit_playscreen(Flags[1], 
-                                        Flags[2], Flags[3], multiplayer);
+                                        Flags[2], Flags[3], multiplayer,
+                                        1);
                         }
                         // else initialize with standard values
                         else {
-                            vInit_playscreen(0,0,level, multiplayer);
+                            vInit_playscreen(0,0,level, multiplayer,
+                                            0);
                         }
                         
                     }

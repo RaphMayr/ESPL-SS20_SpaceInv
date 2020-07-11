@@ -289,11 +289,12 @@ void vDrawCheatScreen(unsigned int infLives, unsigned int score,
     static char enabled_text[50];
     static int enabled_text_width = 0;
 
+    /*
     static char start_sc_text[50];
     static int start_sc_width = 0;
 
     static char start_sc[20];
-
+    */
     static char up_text[20];
     static char down_text[20];
 
@@ -357,6 +358,7 @@ void vDrawCheatScreen(unsigned int infLives, unsigned int score,
     sprintf(up_text, "+");
     sprintf(down_text, "-");
 
+    /*
     sprintf(start_sc_text, "Starting Score");
     tumGetTextSize((char *) start_sc_text,
                    &start_sc_width, NULL);
@@ -407,7 +409,7 @@ void vDrawCheatScreen(unsigned int infLives, unsigned int score,
                 start_sc_width + 78,
                 CENTER_Y - 39,
                 White);
-    
+    */
 
     sprintf(start_lvl_text, "Starting Level");
     tumGetTextSize((char *) start_lvl_text,
@@ -471,6 +473,7 @@ int vCheckCheatScreenInput(signed short mouse_x, signed short mouse_y)
             return 1;
         }
     }
+    /*
     // increase score button
     if (mouse_x >= (CENTER_X - 130 - 5*px + 
             97 + 35*px) && 
@@ -491,6 +494,7 @@ int vCheckCheatScreenInput(signed short mouse_x, signed short mouse_y)
             return 3;
         }
     }
+    */
     // start level increase
     if (mouse_x >= (CENTER_X - 130 - 5*px + 
             94 + 35*px) && 
@@ -515,31 +519,6 @@ int vCheckCheatScreenInput(signed short mouse_x, signed short mouse_y)
     return 0;
 }
 
-void vDrawmultiplScreen()
-{
-    // coordinates of Gamescreen
-    signed short x_multiplscreen = 100;
-    signed short y_multiplscreen = 0;
-    signed short w_multiplscreen = 440;
-    signed short h_multiplscreen = 480;
-
-    static char text[50];
-    static int text_width = 0;
-
-    // drawing Gamescreen
-    tumDrawClear(White);
-    tumDrawFilledBox(x_multiplscreen, y_multiplscreen,
-                    w_multiplscreen, h_multiplscreen,
-                    Black);
-
-    sprintf(text, "High-SCORE SCREEN");
-    tumGetTextSize((char *) text,
-                    &text_width, NULL);
-    tumDrawText(text,
-                CENTER_X - text_width / 2,
-                CENTER_Y,
-                Green);
-}
 
 void vDrawGameOver()
 {
