@@ -57,13 +57,15 @@
 
 #define SCORE_THRESHOLD 1080
 
+#define LEVEL_SCORE 720
+
 #define SCORE_JELLY 30
 #define SCORE_CRAB 20
 #define SCORE_FRED 10
 #define SCORE_MOTHERSHIP 200
 
 #define DX_ALIEN 20
-#define DY_ALIEN 2
+#define DY_ALIEN 1
 
 #define DY_PROJECTILE 300
 #define DY_LASER 200 
@@ -117,42 +119,69 @@ void vInit_playscreen(unsigned int inf_lives,
                       unsigned int multiplayer,
                       unsigned int cheat_set)
 {
-    // start game
-    if (level == 1) {
-        gamedata.score1 = 0;
-    
-        // cheat infinite lives set
-        if (inf_lives == 1) {
-            // value doesn't get changed when 1000
-            gamedata.lives = 1000;  // "INF" gets displayed
-        }
-        else {
-            // cheat not set
-            gamedata.lives = 3;
-        }
-    }
-    else {
-        if (cheat_set) {
-            if (inf_lives) {
-                gamedata.lives = 1000;
+    // initialize gamedata
+    if (xSemaphoreTake(gamedata.lock, 0)) {
+        
+        if (level == 1) {
+            gamedata.score1 = 0;
+            gamedata.level = 1;
+            // cheat infinite lives set
+            if (inf_lives == 1) {
+                // value doesn't get changed when 1000
+                gamedata.lives = 1000;  // "INF" gets displayed
+                gamedata.cheats_set = 1;
             }
             else {
+                // cheat not set
                 gamedata.lives = 3;
+                gamedata.cheats_set = 0;
             }
         }
-    }
-    // multiplayer or not 
-    // -> AI or not
-    if (multiplayer) {
-        gamedata.multiplayer = 1;
-        gamedata.AI_diff = 2;
-    }
-    else {
-        gamedata.multiplayer = 0;
-        gamedata.AI_diff = 0;
-    }
-    gamedata.level = level;    // set level
+        else if (level == 0) {
+            gamedata.score1 = 0;
+            gamedata.level = 1;
+            // cheat infinite lives set
+            if (inf_lives == 1) {
+                // value doesn't get changed when 1000
+                gamedata.lives = 1000;  // "INF" gets displayed
+                gamedata.cheats_set = 1;
+            }
+            else {
+                // cheat not set
+                gamedata.lives = 3;
+                gamedata.cheats_set = 0;
+            }
+        }
+        else {
+            if (cheat_set) {
+                gamedata.cheats_set = 1;
+                if (inf_lives) {
+                    gamedata.lives = 1000;
+                }
+                else {
+                    gamedata.lives = 3;
+                }
+                gamedata.score1 = (level-1)*LEVEL_SCORE;
+                gamedata.level = level;
+            }
+            else {
+                gamedata.cheats_set = 0;
+                gamedata.level = level;
+            }
+        }
+        // multiplayer or not 
+        // -> AI or not
+        if (multiplayer) {
+            gamedata.multiplayer = 1;
+            gamedata.AI_diff = 2;
+        }
+        else {
+            gamedata.multiplayer = 0;
+            gamedata.AI_diff = 0;
+        }
 
+        xSemaphoreGive(gamedata.lock);
+    }
     // initialize alien matrix
     for (int row=0; row < 5; row++) {
         for (int col=0; col < 10; col++) {
@@ -418,10 +447,11 @@ int vDraw_playscreen(unsigned int *Flags, unsigned int ms)
     // count Hi-Score up with score 
     // when it gets greater than current hscore
     if (xSemaphoreTake(gamedata.lock, 0)) {
-        if (gamedata.score1 > gamedata.hscore) {
-            gamedata.hscore = gamedata.score1;
-        }
-
+        if (gamedata.cheats_set == 0) {
+            if (gamedata.score1 > gamedata.hscore) {
+                gamedata.hscore = gamedata.score1;
+            }
+        } 
         xSemaphoreGive(gamedata.lock);
     }
 
@@ -1321,12 +1351,14 @@ void vDrawScores()
                     y_playscreen + 25,
                     Green);
 
-        sprintf(hscore, "%i", gamedata.hscore);
-        tumGetTextSize((char *) hscore, 
-                        &hscore_width, NULL);
-        tumDrawText(hscore, CENTER_X - hscore_width / 2,
-                    y_playscreen + 25,
-                    Green);
+        if (gamedata.cheats_set == 0) {
+            sprintf(hscore, "%i", gamedata.hscore);
+            tumGetTextSize((char *) hscore, 
+                            &hscore_width, NULL);
+            tumDrawText(hscore, CENTER_X - hscore_width / 2,
+                        y_playscreen + 25,
+                        Green);
+        }
 
         if (gamedata.multiplayer) {
             sprintf(AI_diff_str, "AI-DIFFICULTY");
@@ -1536,34 +1568,41 @@ void vCreate_laser() {
     signed short x_origin = 0;
     signed short y_origin = 0;
     unsigned int break_it = 0;
-    unsigned int col;
     
 
+    // hardcoded random arrays -> rand() doesn't gurantee all values to be checked
+    static int random[6][10] = {
+        {0,1,2,3,4,5,6,7,8,9}, 
+        {9,8,7,6,5,4,3,2,1,0}, 
+        {0,2,4,6,8,1,3,5,7,9},
+        {1,3,5,7,9,0,2,4,6,8},
+        {8,6,4,2,0,9,7,5,3,1}, 
+        {9,7,5,3,1,8,6,4,2,0}
+        };
+
+    unsigned int random_num = rand() % 6;
+
     for (int row=4; row >= 0; row--) {  // check which alien is the bottom most
-        unsigned int counter = 0;
-        
-        while(counter < 10) {   // constraint for while loop max. col checks are 10
-            col = (rand() % 9);     // select random column
-            if (xSemaphoreTake(aliens[row][col].lock, 0)) {
-                if (aliens[row][col].state) {   // check if random chosen alien is active
-                    // set coordinates for laser origin
-                    x_origin = aliens[row][col].x_coord + 6*px;
-                    y_origin = aliens[row][col].y_coord + 5*px;
+
+        for (int try=0; try < 10; try++) {
+
+            if (xSemaphoreTake(aliens[row][random[random_num][try]].lock, 0)) {
+             
+                if (aliens[row][random[random_num][try]].state) {
+
+                    x_origin = aliens[row][random[random_num][try]].x_coord + 6*px;
+                    y_origin = aliens[row][random[random_num][try]].y_coord + 5*px;
 
                     break_it = 1;   // break when active alien found
+                    break;
                 }
-                xSemaphoreGive(aliens[row][col].lock);
+                xSemaphoreGive(aliens[row][random[random_num][try]].lock);
             }
-            if (break_it) {
-                break;
-            }
-            counter++;
         }
         if (break_it) {
             break;
         }
     }
-    
     // create laser
     if (xSemaphoreTake(laser.lock, 0)) {
 

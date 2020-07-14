@@ -141,6 +141,7 @@ typedef struct velocities {
  * or singleplayer mode
  * @param level indicates which level is 
  * currently played
+ * @param cheats_set cheats set or not
  * 
  * @param lock to gurantee thread-safety
  */
@@ -152,6 +153,7 @@ typedef struct scores{
     unsigned int lives;
     unsigned int multiplayer;
     unsigned int level;
+    unsigned int cheats_set;
     SemaphoreHandle_t lock;
 } Data;
 /**

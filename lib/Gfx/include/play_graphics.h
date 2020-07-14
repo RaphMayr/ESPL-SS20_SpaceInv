@@ -58,6 +58,8 @@ void vDrawBunker(signed short pos_x, signed short pos_y);
  * 
  * @param pos_x x position of reference point
  * @param pos_y y position of reference point
+ * @param state there are two textures for each alien;
+ * state indicates which one is displayed
 */
 void vDraw_fredAlien(signed short pos_x, signed short pos_y, 
                         signed short state);
@@ -86,8 +88,6 @@ void vDraw_jellyAlien(signed short pos_x, signed short pos_y,
  * 
  * @param pos_x x position of reference point
  * @param pos_y y position of reference point
- * @param state there are two textures for each alien;
- * state indicates which one is displayed
  */ 
 void vDrawProjectile(signed short pos_x, signed short pos_y);
 /**

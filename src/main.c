@@ -466,7 +466,7 @@ void vPlay_screen(void *pvParameters)
                 }   
 
                 // counting structure for triggering lasershot
-                if (ticks_laser == 100) { 
+                if (ticks_laser == 200) { 
                     Flags[3] = 1;
                     ticks_laser = 0;
                 }
@@ -916,7 +916,17 @@ void UDPHandlerOne(size_t read_size, char *buffer, void *args)
 {   
     // receive handle
     // copy buffer into from_AI.move var
-    strcpy(from_AI.move, buffer);     
+    
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    if (xSemaphoreTakeFromISR(from_AI.lock, &xHigherPriorityTaskWoken)) {
+        
+        strcpy(from_AI.move, buffer); 
+
+        xSemaphoreGiveFromISR(from_AI.lock, &xHigherPriorityTaskWoken);
+
+    }
+    
 }
 
 void vReceiveTask(void *pvParameters)
