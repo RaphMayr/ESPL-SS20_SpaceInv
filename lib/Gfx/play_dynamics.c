@@ -462,7 +462,6 @@ int vDraw_playscreen(unsigned int *Flags, unsigned int ms)
     
     if (Flags[3]) {     // periodic timer from main function
         vCreate_laser();
-        
     }
 
     if (gamedata.multiplayer == 0) {
@@ -513,7 +512,7 @@ int vGet_deltaX()
     signed int deltaX = 0;
 
     if (xSemaphoreTake(mothership.lock, 0)) {
-        deltaX = mothership.x_coord - player.x_coord;
+        deltaX = player.x_coord - mothership.x_coord;
 
         xSemaphoreGive(mothership.lock);
     }
