@@ -4,6 +4,6 @@
 - Project in summer term 2020
 - Implemented in C with FreeRTOS Emulator
 
-## Acquired Skills:
+## Acquired/Improved Skills:
 - Mikrocontroller Programming
 - C, FreeRTOS
